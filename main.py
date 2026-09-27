@@ -609,6 +609,55 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       opacity: 1;
     }}
 
+    /* 쓸어내려 새로고침 (Pull-to-Refresh) 인디케이터 */
+    .pull-refresh-indicator {{
+      position: fixed;
+      top: calc(env(safe-area-inset-top, 30px) + 8px);
+      left: 50%;
+      transform: translate(-50%, -90px);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      background: rgba(30, 41, 59, 0.95);
+      border: 1.5px solid rgba(56, 189, 248, 0.4);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-radius: 999px;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      pointer-events: none;
+      transition: transform 0.15s ease-out, opacity 0.15s ease-out, border-color 0.2s;
+      opacity: 0;
+    }}
+    .pull-refresh-indicator.refreshing {{
+      transform: translate(-50%, 14px) !important;
+      opacity: 1 !important;
+    }}
+    .pull-icon {{
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+      font-size: 1.15rem;
+      font-weight: 900;
+      transition: transform 0.2s ease;
+    }}
+    .pull-text {{
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }}
+    .spinner-spin {{
+      display: inline-block;
+      animation: pullSpin 0.75s linear infinite;
+    }}
+    @keyframes pullSpin {{
+      100% {{ transform: rotate(360deg); }}
+    }}
+
     footer {{
       text-align: center;
       margin-top: 24px;
@@ -620,6 +669,12 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
   </style>
 </head>
 <body>
+  <!-- 쓸어내려 새로고침 상단 플로팅 인디케이터 -->
+  <div id="pullIndicator" class="pull-refresh-indicator">
+    <div id="pullIcon" class="pull-icon">↓</div>
+    <span id="pullText" class="pull-text">아래로 당겨서 새로운 번호 추첨</span>
+  </div>
+
   <div class="container">
     <header>
       <div class="badge">동행복권 1회~{latest_round}회 빅데이터 분석</div>
@@ -1002,6 +1057,93 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
 
     renderTypes();
     renderStatsRanks();
+
+    // ==========================================
+    // 📱 모바일 화면 쓸어내려 새로고침 (Pull-to-Refresh)
+    // ==========================================
+    const pullIndicator = document.getElementById('pullIndicator');
+    const pullIcon = document.getElementById('pullIcon');
+    const pullText = document.getElementById('pullText');
+
+    let touchStartY = 0;
+    let isPulling = false;
+    let isRefreshing = false;
+    const PULL_THRESHOLD = 70; // 당김 트리거 기준 거리 (px)
+
+    window.addEventListener('touchstart', (e) => {
+      if (window.scrollY <= 2 && !isRefreshing) {
+        touchStartY = e.touches[0].clientY;
+        isPulling = true;
+      }
+    }, { passive: true });
+
+    window.addEventListener('touchmove', (e) => {
+      if (!isPulling || isRefreshing) return;
+      const currentY = e.touches[0].clientY;
+      const diffY = currentY - touchStartY;
+
+      if (diffY > 8 && window.scrollY <= 2) {
+        // 자연스러운 물리 탄성 저항감 계산
+        const pullDistance = Math.min(Math.pow(diffY, 0.82) * 1.5, 95);
+        pullIndicator.style.opacity = String(Math.min(pullDistance / 45, 1));
+        pullIndicator.style.transform = `translate(-50%, ${{pullDistance - 55}}px)`;
+
+        if (pullDistance >= PULL_THRESHOLD) {
+          pullIcon.style.transform = 'rotate(180deg)';
+          pullText.innerText = '손을 놓으면 새로운 번호 추첨! 🎯';
+          pullIndicator.style.borderColor = '#10b981';
+        } else {
+          pullIcon.style.transform = 'rotate(0deg)';
+          pullText.innerText = '아래로 당겨서 새로운 번호 추첨';
+          pullIndicator.style.borderColor = 'rgba(56, 189, 248, 0.4)';
+        }
+      }
+    }, { passive: true });
+
+    window.addEventListener('touchend', async (e) => {
+      if (!isPulling || isRefreshing) return;
+      isPulling = false;
+
+      const endY = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientY : 0;
+      const diffY = endY - touchStartY;
+      const pullDistance = Math.min(Math.pow(Math.max(0, diffY), 0.82) * 1.5, 95);
+
+      if (pullDistance >= PULL_THRESHOLD && window.scrollY <= 2) {
+        await triggerPullRefresh();
+      } else {
+        pullIndicator.style.transform = 'translate(-50%, -90px)';
+        pullIndicator.style.opacity = '0';
+      }
+    });
+
+    async function triggerPullRefresh() {
+      isRefreshing = true;
+      if (navigator.vibrate) {{
+        try {{ navigator.vibrate(30); }} catch (e) {{}}
+      }}
+
+      pullIndicator.classList.add('refreshing');
+      pullIcon.innerText = '🔄';
+      pullIcon.classList.add('spinner-spin');
+      pullText.innerText = '5대 유형 새로 분석 & 추첨 중...';
+
+      // 5가지 유형 새로 추첨 실행
+      await reGenerateAll();
+
+      pullIcon.classList.remove('spinner-spin');
+      pullIcon.innerText = '✓';
+      pullText.innerText = '추첨 완료! 새로운 번호 도출';
+      pullIndicator.style.borderColor = '#10b981';
+
+      setTimeout(() => {
+        pullIndicator.classList.remove('refreshing');
+        pullIndicator.style.transform = 'translate(-50%, -90px)';
+        pullIndicator.style.opacity = '0';
+        pullIcon.innerText = '↓';
+        pullIcon.style.transform = 'rotate(0deg)';
+        isRefreshing = false;
+      }, 750);
+    }
   </script>
 </body>
 </html>
