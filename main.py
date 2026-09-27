@@ -92,6 +92,11 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="로또 5대유형" />
+  <meta name="theme-color" content="#0b1120" />
   <title>로또 6/45 제 {next_round}회 5대 유형 추천기 (모바일 최적화)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
