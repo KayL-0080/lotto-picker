@@ -132,7 +132,11 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       background: radial-gradient(circle at 50% 0%, #1e293b 0%, #0b1120 100%);
       color: var(--text-main);
       min-height: 100vh;
-      padding: 16px 12px 100px 12px;
+      /* 아이폰 노치 및 다이내믹 아일랜드 완벽 대응 Safe Area */
+      padding-top: calc(env(safe-area-inset-top, 34px) + 18px);
+      padding-left: calc(env(safe-area-inset-left, 0px) + 14px);
+      padding-right: calc(env(safe-area-inset-right, 0px) + 14px);
+      padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 100px);
       line-height: 1.45;
       overflow-x: hidden;
     }}
@@ -142,10 +146,10 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       margin: 0 auto;
     }}
 
-    /* 상단 헤더 */
+    /* 상단 헤더 (아이폰 노치 아래 안전 영역 확보) */
     header {{
       text-align: center;
-      padding: 12px 4px 18px 4px;
+      padding: 10px 4px 18px 4px;
     }}
     .badge {{
       display: inline-flex;
@@ -559,17 +563,17 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       text-align: right;
     }}
 
-    /* 하단 모바일 고정 빠른 바 (스마트폰 엄지 터치 최적화) */
+    /* 하단 모바일 고정 빠른 바 (아이폰 홈 인디케이터 대응) */
     .bottom-bar {{
       position: fixed;
       bottom: 0;
       left: 0;
       right: 0;
-      background: rgba(15, 23, 42, 0.92);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       border-top: 1px solid rgba(255,255,255,0.1);
-      padding: 10px 16px;
+      padding: 10px 16px calc(env(safe-area-inset-bottom, 12px) + 10px) 16px;
       display: flex;
       gap: 10px;
       z-index: 100;
@@ -582,10 +586,10 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       font-size: 0.9rem;
     }}
 
-    /* 모바일 토스트 */
+    /* 모바일 토스트 (아이폰 노치/다이내믹 아일랜드 아래 안전 영역) */
     .toast {{
       position: fixed;
-      top: 24px;
+      top: calc(env(safe-area-inset-top, 30px) + 14px);
       left: 50%;
       transform: translate(-50%, -100px);
       background: #10b981;
