@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="로또 5대유형" />
   <meta name="theme-color" content="#0b1120" />
-  <title>로또 6/45 제 1244회 5대 유형 추천기 & 천운 예약</title>
+  <title>로또 6/45 제 1244회 5대 유형 추천기 & 30분 전 알람</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -92,9 +92,7 @@
       word-break: keep-all;
     }
 
-    /* ======================================================== */
     /* 🔮 [황금 천운 & 구매 일시 지정 카드] */
-    /* ======================================================== */
     .fortune-card {
       background: linear-gradient(145deg, rgba(30, 41, 59, 0.95) 0%, rgba(20, 29, 47, 0.95) 100%);
       border: 1.5px solid rgba(251, 191, 36, 0.4);
@@ -170,6 +168,105 @@
       line-height: 1.4;
     }
 
+    /* ⏰ [추첨 & 구매 30분 전 알람 섹션] */
+    .alarm-section {
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 14px;
+      padding: 14px;
+      margin: 12px 0;
+    }
+    .alarm-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .alarm-title {
+      font-weight: 800;
+      color: #fff;
+      font-size: 0.88rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .alarm-badge {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+    }
+    .alarm-badge.active {
+      background: rgba(16, 185, 129, 0.2);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      font-weight: 700;
+    }
+    .alarm-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .alarm-item {
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      padding: 10px;
+    }
+    .alarm-item-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+    }
+    .alarm-item-time {
+      font-size: clamp(0.9rem, 2.9vw, 1.05rem);
+      font-weight: 800;
+      color: var(--accent);
+    }
+    .alarm-item-desc {
+      font-size: 0.68rem;
+      color: #94a3b8;
+      margin-top: 3px;
+      line-height: 1.3;
+    }
+    .alarm-btn-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .btn-alarm {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      touch-action: manipulation;
+    }
+    .btn-alarm:active {
+      transform: scale(0.97);
+    }
+    .btn-cal {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+    }
+    .btn-web {
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      color: var(--accent);
+    }
+    .btn-web:active {
+      background: rgba(56, 189, 248, 0.3);
+    }
+
     /* 주간 확정 잠금 버튼 */
     .btn-lock {
       width: 100%;
@@ -194,7 +291,7 @@
       transform: scale(0.97);
     }
 
-    /* 확정 봉인 배너 (잠겼을 때 표시) */
+    /* 확정 봉인 배너 */
     .lock-banner {
       display: none;
       background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.1) 100%);
@@ -315,7 +412,7 @@
       padding: 10px;
     }
 
-    /* 🔥 [핵심] 유형 1, 2, 3, 4, 5 가로 한 줄 뱃지 네비게이션 바 */
+    /* 유형 1, 2, 3, 4, 5 가로 한 줄 뱃지 네비게이션 바 */
     .type-pill-bar {
       display: flex;
       align-items: center;
@@ -382,7 +479,7 @@
       font-weight: 700;
     }
 
-    /* 번호 볼 공통 (모바일 1줄 밀착 배치) */
+    /* 번호 볼 공통 */
     .ball-wrap {
       display: flex;
       align-items: center;
@@ -772,7 +869,40 @@
           📍 <strong>추천 명당 방위:</strong> 현재 계신 곳 기준 [동남쪽 (손방 巽方 - 재물과 번영의 방위)] 판매점
         </div>
         <div class="timing-desc" style="color: #94a3b8; margin-top:3px;">
-          💡 <strong>구매 팁:</strong> 현금 5,000원을 깨끗한 지폐로 준비하여 마음속으로 '풍요와 감사가 내게 넘쳐흐른다'는 확언과 함께 구입할 때 천운이 극대화됩니다.
+          💡 <strong>구매 팁:</strong> 현금 5,000원을 준비하여 마음을 평온히 하고, '풍요와 감사가 내게 넘쳐흐른다'는 긍정의 확언과 함께 구입하세요.
+        </div>
+      </div>
+
+      <!-- ⏰ [추첨 & 구매 30분 전 알람 센터] -->
+      <div class="alarm-section">
+        <div class="alarm-header">
+          <span class="alarm-title">
+            ⏰ 30분 전 황금 타이밍 알람
+          </span>
+          <span class="alarm-badge" id="alarmStatusBadge">알람 미등록</span>
+        </div>
+        <div class="alarm-grid">
+          <!-- 추첨 30분 전 -->
+          <div class="alarm-item">
+            <div class="alarm-item-label">🎯 추첨 30분 전</div>
+            <div class="alarm-item-time">수요일 14시 37분 33초</div>
+            <div class="alarm-item-desc">기운 집결 & 5대 유형 추첨 준비</div>
+          </div>
+          <!-- 구매 30분 전 -->
+          <div class="alarm-item">
+            <div class="alarm-item-label">🛒 구매 30분 전</div>
+            <div class="alarm-item-time">금요일 14시 45분</div>
+            <div class="alarm-item-desc">현금 지참 & 명당 판매점 이동</div>
+          </div>
+        </div>
+
+        <div class="alarm-btn-wrap">
+          <button class="btn-alarm btn-cal" onclick="addToPhoneCalendar()">
+            <span>📅 스마트폰 캘린더에 30분 전 알람 추가 (소리/진동)</span>
+          </button>
+          <button class="btn-alarm btn-web" onclick="enableWebNotification()">
+            <span>🔔 브라우저 30분 전 실시간 알림 켜기</span>
+          </button>
         </div>
       </div>
 
@@ -885,10 +1015,10 @@
   <div id="toast" class="toast">알림</div>
 
   <script>
-    const INITIAL_TYPES = [{"type_id": 1, "name": "고빈도 모멘텀형 (Hot Momentum)", "subtitle": "최근 10~30회차 다출현 및 역대 상위 빈출 번호 중심", "concept": "출현 모멘텀이 강하게 살아있는 번호들을 중심으로 구성한 추세 추종형 조합입니다. 최근 10회 및 30회 내 빈출도와 역대 누적 출현율을 가중 합산하여 상위 핫(Hot) 번호를 선별했습니다.", "numbers": [13, 15, 18, 34, 38, 43], "bonus": 31, "metrics": {"sum": 161, "odd_even": "3:3", "high_low": "3:3", "ac_value": 8, "consecutive": 0}, "reasons": ["13번 (누적 183회, 최근30회 중 9회)", "15번 (누적 170회, 최근30회 중 8회)", "18번 (누적 179회, 최근30회 중 7회)", "34번 (누적 186회, 최근30회 중 5회)", "38번 (누적 173회, 최근30회 중 4회)", "43번 (누적 167회, 최근30회 중 5회)"]}, {"type_id": 2, "name": "미출현 주기 반등형 (Cold & Mean Reversion)", "subtitle": "평균 출현 주기를 초과한 장기 미출현 번호 및 직전 이월수 조합", "concept": "통계적 평균 회귀(Mean Reversion) 법칙에 기반하여, 고유 평균 주기를 넘겨 출현이 임박한 장기 미출현 번호와 직전 회차 당첨 번호(이월수) 1개를 조화롭게 결합한 반등 노림수 조합입니다.", "numbers": [5, 17, 18, 26, 27, 45], "bonus": 30, "metrics": {"sum": 138, "odd_even": "4:2", "high_low": "3:3", "ac_value": 8, "consecutive": 2}, "reasons": ["5번 (30회 연속 미출현, 평균주기 7.84회 대비 3.83배 경과)", "17번 (17회 연속 미출현, 평균주기 7.16회 대비 2.37배 경과)", "18번 (직전 회차 1243회 당첨 이월수)", "26번 (17회 연속 미출현, 평균주기 7.44회 대비 2.29배 경과)", "27번 (19회 연속 미출현, 평균주기 6.78회 대비 2.8배 경과)", "45번 (19회 연속 미출현, 평균주기 6.97회 대비 2.73배 경과)"]}, {"type_id": 3, "name": "황금 균형 통계형 (Golden Balance & Normal Distribution)", "subtitle": "역대 1등 80% 이상이 포함된 홀짝 3:3, 고저 3:3, 총합 130~150 완벽 균형", "concept": "역대 1등 당첨 데이터의 80% 이상이 수렴하는 정규분포 황금 비율을 완벽히 맞춘 조합입니다. 홀수 3개, 짝수 3개 / 저번호 3개, 고번호 3개 / 총합은 로또 역대 평균치인 138 전후에 정밀 수렴합니다.", "numbers": [10, 12, 15, 25, 34, 43], "bonus": 2, "metrics": {"sum": 139, "odd_even": "3:3", "high_low": "3:3", "ac_value": 9, "consecutive": 0}, "reasons": ["10번 (구간: 1~10, 홀짝/고저 황금 밸런스 매칭)", "12번 (구간: 11~20, 홀짝/고저 황금 밸런스 매칭)", "15번 (구간: 11~20, 홀짝/고저 황금 밸런스 매칭)", "25번 (구간: 21~30, 홀짝/고저 황금 밸런스 매칭)", "34번 (구간: 31~40, 홀짝/고저 황금 밸런스 매칭)", "43번 (구간: 41~45, 홀짝/고저 황금 밸런스 매칭)"]}, {"type_id": 4, "name": "연번 & 동끝수 실전 패턴형 (Consecutive & End-Digit)", "subtitle": "실제 1등 당첨의 60% 이상인 연번(1쌍)과 70% 이상인 동끝수(1쌍) 반영", "concept": "역대 로또 당첨 번호의 강력한 실전 특징인 '연속된 2개 번호(연번)'와 '끝자리가 같은 2개 번호(동끝수)'를 정확히 1쌍씩 배치하여, 기계적 무작위가 아닌 실제 당첨 패턴의 생생한 상관관계를 재현한 조합입니다.", "numbers": [10, 13, 29, 33, 37, 38], "bonus": 1, "metrics": {"sum": 160, "odd_even": "4:2", "high_low": "2:4", "ac_value": 9, "consecutive": 1}, "reasons": ["10번 (동끝수/밸런스 번호)", "13번 (동끝수/밸런스 번호)", "29번 (동끝수/밸런스 번호)", "33번 (동끝수/밸런스 번호)", "37번 (연속번호)", "38번 (연속번호)"]}, {"type_id": 5, "name": "AI 동반출현 & 복잡도 최적화형 (AI Synergy & AC Optimization)", "subtitle": "45x45 궁합수 매트릭스와 산포도(AC 7~10) 수리 통계 최적화", "concept": "역대 회차에서 함께 당첨된 번호 쌍의 동반 출현(궁합수) 빈도 행렬을 분석하여, 번호 상호 간의 당첨 시너지 점수가 가장 높고 산포 복잡도(AC값)가 7~10 사이로 최적화된 하이브리드 조합입니다.", "numbers": [12, 13, 18, 31, 34, 45], "bonus": 15, "metrics": {"sum": 153, "odd_even": "3:3", "high_low": "3:3", "ac_value": 10, "consecutive": 1}, "reasons": ["12번 (베이지안 기대치 상위, 타 번호와의 동반 출현 궁합 점수 극대화)", "13번 (베이지안 기대치 상위, 타 번호와의 동반 출현 궁합 점수 극대화)", "18번 (베이지안 기대치 상위, 타 번호와의 동반 출현 궁합 점수 극대화)", "31번 (베이지안 기대치 상위, 타 번호와의 동반 출현 궁합 점수 극대화)", "34번 (베이지안 기대치 상위, 타 번호와의 동반 출현 궁합 점수 극대화)", "45번 (베이지안 기대치 상위, 타 번호와의 동반 출현 궁합 점수 극대화)"]}];
+    const INITIAL_TYPES = [{"type_id": 1, "name": "고빈도 모멘텀형 (Hot Momentum)", "subtitle": "최근 10~30회차 다출현 및 역대 상위 빈출 번호 중심", "concept": "출현 모멘텀이 강하게 살아있는 번호들을 중심으로 구성한 추세 추종형 조합입니다. 최근 10회 및 30회 내 빈출도와 역대 누적 출현율을 가중 합산하여 상위 핫(Hot) 번호를 선별했습니다.", "numbers": [13, 15, 18, 19, 34, 43], "bonus": 31, "metrics": {"sum": 142, "odd_even": "4:2", "high_low": "4:2", "ac_value": 10, "consecutive": 1}, "reasons": ["13번 (누적 183회, 최근30회 중 9회)", "15번 (누적 170회, 최근30회 중 8회)", "18번 (누적 179회, 최근30회 중 7회)", "19번 (누적 171회, 최근30회 중 6회)", "34번 (누적 186회, 최근30회 중 5회)", "43번 (누적 167회, 최근30회 중 5회)"]}, {"type_id": 2, "name": "미출현 주기 반등형 (Cold & Mean Reversion)", "subtitle": "평균 출현 주기를 초과한 장기 미출현 번호 및 직전 이월수 조합", "concept": "통계적 평균 회귀(Mean Reversion) 법칙에 기반하여, 고유 평균 주기를 넘겨 출현이 임박한 장기 미출현 번호와 직전 회차 당첨 번호(이월수) 1개를 조화롭게 결합한 반등 노림수 조합입니다.", "numbers": [5, 17, 18, 26, 27, 45], "bonus": 30, "metrics": {"sum": 138, "odd_even": "4:2", "high_low": "3:3", "ac_value": 8, "consecutive": 2}, "reasons": ["5번 (30회 연속 미출현, 평균주기 7.84회 대비 3.83배 경과)", "17번 (17회 연속 미출현, 평균주기 7.16회 대비 2.37배 경과)", "18번 (직전 회차 1243회 당첨 이월수)", "26번 (17회 연속 미출현, 평균주기 7.44회 대비 2.29배 경과)", "27번 (19회 연속 미출현, 평균주기 6.78회 대비 2.8배 경과)", "45번 (19회 연속 미출현, 평균주기 6.97회 대비 2.73배 경과)"]}, {"type_id": 3, "name": "황금 균형 통계형 (Golden Balance & Normal Distribution)", "subtitle": "역대 1등 80% 이상이 포함된 홀짝 3:3, 고저 3:3, 총합 130~150 완벽 균형", "concept": "역대 1등 당첨 데이터의 80% 이상이 수렴하는 정규분포 황금 비율을 완벽히 맞춘 조합입니다. 홀수 3개, 짝수 3개 / 저번호 3개, 고번호 3개 / 총합은 로또 역대 평균치인 138 전후에 정밀 수렴합니다.", "numbers": [9, 11, 14, 27, 36, 42], "bonus": 2, "metrics": {"sum": 139, "odd_even": "3:3", "high_low": "3:3", "ac_value": 10, "consecutive": 0}, "reasons": ["9번 (구간: 1~10, 홀짝/고저 황금 밸런스 매칭)", "11번 (구간: 11~20, 홀짝/고저 황금 밸런스 매칭)", "14번 (구간: 11~20, 홀짝/고저 황금 밸런스 매칭)", "27번 (구간: 21~30, 홀짝/고저 황금 밸런스 매칭)", "36번 (구간: 31~40, 홀짝/고저 황금 밸런스 매칭)", "42번 (구간: 41~45, 홀짝/고저 황금 밸런스 매칭)"]}, {"type_id": 4, "name": "연번 & 동끝수 실전 패턴형 (Consecutive & End-Digit)", "subtitle": "실제 1등 당첨의 60% 이상인 연번(1쌍)과 70% 이상인 동끝수(1쌍) 반영", "concept": "역대 로또 당첨 번호의 강력한 실전 특징인 '연속된 2개 번호(연번)'와 '끝자리가 같은 2개 번호(동끝수)'를 정확히 1쌍씩 배치하여, 기계적 무작위가 아닌 실제 당첨 패턴의 생생한 상관관계를 재현한 조합입니다.", "numbers": [11, 13, 21, 32, 33, 38], "bonus": 1, "metrics": {"sum": 148, "odd_even": "4:2", "high_low": "3:3", "ac_value": 10, "consecutive": 1}, "reasons": ["11번 (동끝수/밸런스 번호)", "13번 (동끝수/밸런스 번호)", "21번 (동끝수/밸런스 번호)", "32번 (연속번호)", "33번 (연속번호)", "38번 (동끝수/밸런스 번호)"]}, {"type_id": 5, "name": "AI 동반출현 & 복잡도 최적화형 (AI Synergy & AC Optimization)", "subtitle": "45x45 궁합수 매트릭스와 산포도(AC 7~10) 수리 통계 최적화", "concept": "역대 회차에서 함께 당첨된 번호 쌍의 동반 출현(궁합수) 빈도 행렬을 분석하여, 번호 상호 간의 당첨 시너지 점수가 가장 높고 산포 복잡도(AC값)가 7~10 사이로 최적화된 하이브리드 조합입니다.", "numbers": [3, 12, 13, 20, 33, 34], "bonus": 15, "metrics": {"sum": 115, "odd_even": "3:3", "high_low": "4:2", "ac_value": 8, "consecutive": 2}, "reasons": ["3번 (베이지안 기대치 상위, 타 번호와의 동반 출현 궁합 점수 극대화)", "12번 (베이지안 기대치 상위, 타 번호와의 동반 출현 궁합 점수 극대화)", "13번 (베이지안 기대치 상위, 타 번호와의 동반 출현 궁합 점수 극대화)", "20번 (베이지안 기대치 상위, 타 번호와의 동반 출현 궁합 점수 극대화)", "33번 (베이지안 기대치 상위, 타 번호와의 동반 출현 궁합 점수 극대화)", "34번 (베이지안 기대치 상위, 타 번호와의 동반 출현 궁합 점수 극대화)"]}];
     const STATS = {"total_rounds": 1243, "latest_round": 1243, "next_round": 1244, "avg_sum": 138.3, "avg_ac": 8.0, "top_10_hot": [{"number": 34, "count": 186}, {"number": 13, "count": 183}, {"number": 27, "count": 181}, {"number": 12, "count": 180}, {"number": 18, "count": 179}, {"number": 33, "count": 175}, {"number": 45, "count": 175}, {"number": 37, "count": 174}, {"number": 40, "count": 174}, {"number": 38, "count": 173}], "top_10_cold": [{"number": 5, "omission": 30}, {"number": 27, "omission": 19}, {"number": 45, "omission": 19}, {"number": 17, "omission": 17}, {"number": 26, "omission": 17}, {"number": 30, "omission": 15}, {"number": 3, "omission": 13}, {"number": 8, "omission": 13}, {"number": 28, "omission": 13}, {"number": 14, "omission": 12}], "odd_even_ratios": {"3:3": 414, "4:2": 330, "2:4": 281, "5:1": 99, "1:5": 83}, "high_low_ratios": {"3:3": 410, "2:4": 311, "4:2": 282, "1:5": 113, "5:1": 94}};
     const LAST_ITEM = {"round": 1243, "date": "20260926", "numbers": [9, 18, 24, 38, 43, 44], "bonus": 35, "winner_count": 12, "first_prize": 2592525282, "total_sell_amount": 128926419000};
-    const FORTUNE = {"next_round": 1244, "draw_day": "수요일", "draw_time": "15시 07분 33초", "draw_time_short": "15:07:33", "draw_hour": 15, "draw_min": 7, "draw_sec": 33, "draw_energy": "신시(申時) 🌟 금수쌍청(金水雙淸) 재물왕성 길시 & 수비학 33초", "buy_day": "금요일", "buy_time": "오후 03시 15분 ~ 04시 45분", "buy_time_desc": "신시(申時) 금전운 상승 구간", "buy_direction": "현재 계신 곳 기준 [동남쪽 (손방 巽方 - 재물과 번영의 방위)] 판매점", "mindset": "현금 5,000원을 깨끗한 지폐로 준비하여 마음속으로 '풍요와 감사가 내게 넘쳐흐른다'는 확언과 함께 구입할 때 천운이 극대화됩니다."};
+    const FORTUNE = {"next_round": 1244, "draw_day": "수요일", "draw_time": "15시 07분 33초", "draw_time_short": "15:07:33", "draw_hour": 15, "draw_min": 7, "draw_sec": 33, "draw_energy": "신시(申時) 🌟 금수쌍청(金水雙淸) 재물왕성 길시 & 수비학 33초", "draw_alarm_time": "14시 37분 33초", "buy_day": "금요일", "buy_time": "오후 03시 15분 ~ 04시 45분", "buy_hour": 15, "buy_min": 15, "buy_time_desc": "신시(申時) 금전운 상승 구간", "buy_alarm_time": "14시 45분", "buy_direction": "현재 계신 곳 기준 [동남쪽 (손방 巽方 - 재물과 번영의 방위)] 판매점", "mindset": "현금 5,000원을 준비하여 마음을 평온히 하고, '풍요와 감사가 내게 넘쳐흐른다'는 긍정의 확언과 함께 구입하세요."};
     const ALL_FREQ = {"10": 163, "23": 149, "29": 156, "33": 175, "37": 174, "40": 174, "9": 137, "13": 183, "21": 167, "25": 153, "32": 146, "42": 158, "11": 168, "16": 170, "19": 171, "27": 181, "31": 171, "14": 172, "30": 158, "24": 168, "41": 151, "15": 170, "26": 165, "2": 157, "8": 158, "34": 186, "39": 168, "4": 163, "17": 171, "36": 165, "44": 166, "1": 170, "7": 171, "45": 175, "22": 146, "38": 173, "6": 166, "12": 180, "3": 172, "35": 163, "43": 167, "18": 179, "20": 172, "5": 153, "28": 157};
     const RECENT_30 = {"10": 5, "15": 8, "19": 6, "27": 2, "30": 3, "33": 3, "13": 9, "21": 3, "44": 6, "45": 4, "3": 3, "14": 3, "23": 3, "24": 5, "8": 3, "20": 5, "29": 4, "31": 7, "28": 6, "32": 5, "42": 5, "1": 3, "2": 5, "39": 3, "22": 5, "25": 3, "34": 5, "43": 5, "6": 3, "18": 7, "36": 3, "4": 4, "11": 4, "17": 2, "41": 4, "16": 4, "9": 4, "26": 1, "35": 2, "12": 3, "37": 3, "38": 4, "7": 3, "40": 2, "5": 0};
     const OMISSION = {"1": 9, "2": 1, "3": 13, "4": 1, "5": 30, "6": 8, "7": 2, "8": 13, "9": 0, "10": 1, "11": 3, "12": 7, "13": 2, "14": 12, "15": 8, "16": 1, "17": 17, "18": 0, "19": 3, "20": 3, "21": 7, "22": 4, "23": 2, "24": 0, "25": 10, "26": 17, "27": 19, "28": 13, "29": 7, "30": 15, "31": 1, "32": 4, "33": 4, "34": 6, "35": 9, "36": 4, "37": 6, "38": 0, "39": 8, "40": 6, "41": 1, "42": 5, "43": 0, "44": 0, "45": 19};
@@ -901,9 +1031,9 @@
     let isLocked = false;
     let lockTimerInterval = null;
 
-    // 로컬 스토리지 키
     const STORAGE_KEY_LOCK = `lotto_lock_${FORTUNE.next_round}`;
     const STORAGE_KEY_DATA = `lotto_types_${FORTUNE.next_round}`;
+    const STORAGE_KEY_ALARM = `lotto_alarm_registered_${FORTUNE.next_round}`;
 
     function getBallClass(num) {
       if (num >= 1 && num <= 10) return 'yellow';
@@ -943,6 +1073,123 @@
     }
 
     // ==========================================
+    // ⏰ [추첨 & 구매 30분 전 알람 및 캘린더 등록]
+    // ==========================================
+    function checkAlarmStatus() {
+      const registered = localStorage.getItem(STORAGE_KEY_ALARM);
+      const badge = document.getElementById('alarmStatusBadge');
+      if (registered === 'true' && badge) {
+        badge.innerText = '알람 활성화됨 ✓';
+        badge.classList.add('active');
+      }
+    }
+
+    // 요일 이름 -> 이번 주 기준 날짜 계산
+    function getNextDayOfWeek(dayName) {
+      const days = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+      const targetDay = days.indexOf(dayName);
+      const now = new Date();
+      const result = new Date(now);
+      const diff = (targetDay - now.getDay() + 7) % 7;
+      result.setDate(now.getDate() + (diff === 0 ? 7 : diff));
+      return result;
+    }
+
+    function formatICSDate(date) {
+      return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    }
+
+    // 스마트폰 캘린더(.ics)에 30분 전 알람 포함 자동 등록
+    function addToPhoneCalendar() {
+      const drawDate = getNextDayOfWeek(FORTUNE.draw_day);
+      drawDate.setHours(FORTUNE.draw_hour, FORTUNE.draw_min, FORTUNE.draw_sec, 0);
+
+      const buyDate = getNextDayOfWeek(FORTUNE.buy_day);
+      buyDate.setHours(FORTUNE.buy_hour, FORTUNE.buy_min, 0, 0);
+
+      const drawEnd = new Date(drawDate.getTime() + 15 * 60 * 1000);
+      const buyEnd = new Date(buyDate.getTime() + 30 * 60 * 1000);
+
+      const icsData = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//Lotto 5-Type Recommender//KR',
+        'CALSCALE:GREGORIAN',
+        'METHOD:PUBLISH',
+
+        // 이벤트 1: 황금 추첨 30분 전 알람
+        'BEGIN:VEVENT',
+        `UID:lotto-draw-${FORTUNE.next_round}@lotto.local`,
+        `DTSTAMP:${formatICSDate(new Date())}`,
+        `DTSTART:${formatICSDate(drawDate)}`,
+        `DTEND:${formatICSDate(drawEnd)}`,
+        `SUMMARY:🎯 [로또 제${FORTUNE.next_round}회] 황금 추첨 시간 (30분 전 알람)`,
+        `DESCRIPTION:모든 운의 기운이 충만한 황금 추첨 시간입니다!\n운의 기운: ${FORTUNE.draw_energy}`,
+        'STATUS:CONFIRMED',
+        'BEGIN:VALARM',
+        'TRIGGER:-PT30M',
+        'ACTION:DISPLAY',
+        'DESCRIPTION:⏰ 로또 5대유형 황금 추첨 30분 전입니다! 기운을 모아 번호를 확인하세요.',
+        'END:VALARM',
+        'END:VEVENT',
+
+        // 이벤트 2: 로또 구매 30분 전 알람
+        'BEGIN:VEVENT',
+        `UID:lotto-buy-${FORTUNE.next_round}@lotto.local`,
+        `DTSTAMP:${formatICSDate(new Date())}`,
+        `DTSTART:${formatICSDate(buyDate)}`,
+        `DTEND:${formatICSDate(buyEnd)}`,
+        `SUMMARY:🛒 [로또 제${FORTUNE.next_round}회] 로또 구매 골든타임 (30분 전 알람)`,
+        `DESCRIPTION:로또 구매 최적 길시입니다!\n명당 방위: ${FORTUNE.buy_direction}\n구매 팁: ${FORTUNE.mindset}`,
+        'STATUS:CONFIRMED',
+        'BEGIN:VALARM',
+        'TRIGGER:-PT30M',
+        'ACTION:DISPLAY',
+        'DESCRIPTION:⏰ 로또 구매 골든타임 30분 전입니다! 현금 5,000원을 준비하여 명당 판매점으로 이동하세요.',
+        'END:VALARM',
+        'END:VEVENT',
+
+        'END:VCALENDAR'
+      ].join('\r\n');
+
+      const blob = new Blob([icsData], { type: 'text/calendar;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `lotto_${FORTUNE.next_round}_alarm.ics`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      localStorage.setItem(STORAGE_KEY_ALARM, 'true');
+      checkAlarmStatus();
+      showToast('스마트폰 캘린더에 30분 전 알람이 등록되었습니다! 📅');
+    }
+
+    // 브라우저 웹 알림(Web Notification) 권한 요청 및 활성화
+    function enableWebNotification() {
+      if (!('Notification' in window)) {
+        showToast('이 브라우저는 웹 푸시를 지원하지 않습니다. 캘린더 알람을 이용해주세요.');
+        return;
+      }
+
+      Notification.requestPermission().then((permission) => {
+        if (permission === 'granted') {
+          localStorage.setItem(STORAGE_KEY_ALARM, 'true');
+          checkAlarmStatus();
+          new Notification('🎯 로또 5대유형 30분 전 알람 활성화 완료', {
+            body: `제 ${FORTUNE.next_round}회 추첨(${FORTUNE.draw_alarm_time}) 및 구매(${FORTUNE.buy_alarm_time}) 30분 전에 알람이 발송됩니다.`,
+            icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="%23f59e0b"/><text x="50" y="62" font-size="38" text-anchor="middle" fill="%23fff" font-weight="bold">77</text></svg>'
+          });
+          showToast('브라우저 30분 전 알림이 활성화되었습니다! 🔔');
+        } else {
+          showToast('알림 권한이 허용되지 않았습니다. 브라우저 설정에서 허용해 주세요.');
+        }
+      });
+    }
+
+    // ==========================================
     // 🔒 [주간 1회 확정 잠금 & 천운 예약 시스템]
     // ==========================================
     function checkLockStatus() {
@@ -955,13 +1202,11 @@
         const now = new Date().getTime();
 
         if (now < unlockTime) {
-          // 아직 잠금 유지 기간
           isLocked = true;
           currentTypes = JSON.parse(savedData);
           applyLockedUI(unlockTime);
           return;
         } else {
-          // 잠금 만료 -> 자동 해제
           localStorage.removeItem(STORAGE_KEY_LOCK);
           localStorage.removeItem(STORAGE_KEY_DATA);
         }
@@ -976,7 +1221,6 @@
         return;
       }
 
-      // 다음 주 추첨 개방 시점 계산 (다음 주 일요일 09:00 또는 7일 뒤)
       const now = new Date();
       const unlockDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
       unlockDate.setHours(FORTUNE.draw_hour, FORTUNE.draw_min, FORTUNE.draw_sec, 0);
@@ -1009,7 +1253,6 @@
       btnLock.style.background = '#334155';
       btnLock.style.color = '#94a3b8';
 
-      // 재추첨 버튼 비활성화 텍스트
       const reGenBtn = document.getElementById('btnReGen');
       if (reGenBtn) {
         reGenBtn.innerHTML = '<span>🔒 이번 회차 번호 봉인됨</span>';
@@ -1021,7 +1264,6 @@
         bottomBtn.style.opacity = '0.7';
       }
 
-      // 카운트다운 타이머 시작
       if (lockTimerInterval) clearInterval(lockTimerInterval);
       updateCountdown(unlockTime);
       lockTimerInterval = setInterval(() => updateCountdown(unlockTime), 1000);
@@ -1412,6 +1654,7 @@
 
     // 초기화 실행
     checkLockStatus();
+    checkAlarmStatus();
     renderTypes();
     renderStatsRanks();
   </script>

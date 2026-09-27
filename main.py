@@ -3,7 +3,7 @@ import json
 import os
 import sys
 import webbrowser
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Windows 콘솔 인코딩 대응
 if sys.platform.startswith("win"):
@@ -33,13 +33,12 @@ def get_ball_class(num: int) -> str:
 def calculate_fortune_timing(next_round: int) -> dict:
     """
     모든 운의 기운(기문둔갑 8문, 사주 명리 오행 길시, 수비학, 목성/금성 번영 시진)을
-    종합하여 매 회차 최적의 [황금 추첨 일시]와 [로또 구매 최적 일시]를 산출합니다.
+    종합하여 매 회차 최적의 [황금 추첨 일시]와 [로또 구매 최적 일시] 및 30분 전 알람 시간을 산출합니다.
     """
-    # 전통 명리학과 복권 통계상 가장 재물운이 왕성한 요일은 목(木:목생화)과 금(金:재물결실)
     day_options = ["수요일", "목요일", "금요일"]
     lucky_day = day_options[(next_round * 3) % len(day_options)]
 
-    # 길시: 오시(午時 11~13 태양양기), 신시(申時 15~17 금수쌍청), 유시(酉時 17~19 금기운왕성)
+    # 길시: 오시(午時 11~13), 신시(申時 15~17), 유시(酉時 17~19)
     time_presets = [
         (15, 7, 33, "신시(申時) 🌟 금수쌍청(金水雙淸) 재물왕성 길시 & 수비학 33초"),
         (16, 48, 55, "신시(申時) 🌟 생기복덕(生氣福德) 기문둔갑 대길시 & 엔젤넘버 55초"),
@@ -48,19 +47,34 @@ def calculate_fortune_timing(next_round: int) -> dict:
     ]
     h, m, s, energy_desc = time_presets[(next_round * 7) % len(time_presets)]
 
-    # 언제 로또를 사야 하는가? (Golden Buying Window)
+    # 추첨 30분 전 알람 시각
+    draw_total_sec = h * 3600 + m * 60 + s
+    draw_alarm_total_sec = max(0, draw_total_sec - 1800)
+    dah = draw_alarm_total_sec // 3600
+    dam = (draw_alarm_total_sec % 3600) // 60
+    das = draw_alarm_total_sec % 60
+    draw_alarm_time = f"{dah:02d}시 {dam:02d}분 {das:02d}초"
+
+    # 로또 구매 최적 요일 및 시간
     buy_days = ["목요일", "금요일", "토요일 오전"]
     buy_day = buy_days[(next_round * 2) % len(buy_days)]
     
     buy_time_ranges = [
-        ("오후 03시 15분 ~ 04시 45분", "신시(申時) 금전운 상승 구간"),
-        ("오전 11시 30분 ~ 오후 01시 10분", "오시(午時) 양기 충만 귀인 구간"),
-        ("오후 05시 20분 ~ 06시 50분", "유시(酉時) 결실과 수확 구간"),
-        ("오전 10시 10분 ~ 11시 50분", "사시(巳時) 재물 태동 구간"),
+        ("오후 03시 15분 ~ 04시 45분", 15, 15, "신시(申時) 금전운 상승 구간"),
+        ("오전 11시 30분 ~ 오후 01시 10분", 11, 30, "오시(午時) 양기 충만 귀인 구간"),
+        ("오후 05시 20분 ~ 06시 50분", 17, 20, "유시(酉時) 결실과 수확 구간"),
+        ("오전 10시 10분 ~ 11시 50분", 10, 10, "사시(巳時) 재물 태동 구간"),
     ]
-    buy_time, buy_time_desc = buy_time_ranges[(next_round * 5) % len(buy_time_ranges)]
+    buy_time, bh, bm, buy_time_desc = buy_time_ranges[(next_round * 5) % len(buy_time_ranges)]
 
-    # 길한 구매 명당 방위 (현재 계신 곳 기준)
+    # 구매 30분 전 알람 시각
+    buy_total_min = bh * 60 + bm
+    buy_alarm_total_min = max(0, buy_total_min - 30)
+    bah = buy_alarm_total_min // 60
+    bam = buy_alarm_total_min % 60
+    buy_alarm_time = f"{bah:02d}시 {bam:02d}분"
+
+    # 길한 구매 명당 방위
     directions = [
         "현재 계신 곳 기준 [동남쪽 (손방 巽方 - 재물과 번영의 방위)] 판매점",
         "현재 계신 곳 기준 [서북쪽 (건방 乾方 - 하늘의 큰 뜻과 대운 방위)] 판매점",
@@ -78,11 +92,15 @@ def calculate_fortune_timing(next_round: int) -> dict:
         "draw_min": m,
         "draw_sec": s,
         "draw_energy": energy_desc,
+        "draw_alarm_time": draw_alarm_time,
         "buy_day": buy_day,
         "buy_time": buy_time,
+        "buy_hour": bh,
+        "buy_min": bm,
         "buy_time_desc": buy_time_desc,
+        "buy_alarm_time": buy_alarm_time,
         "buy_direction": lucky_direction,
-        "mindset": "현금 5,000원을 깨끗한 지폐로 준비하여 마음속으로 '풍요와 감사가 내게 넘쳐흐른다'는 확언과 함께 구입할 때 천운이 극대화됩니다.",
+        "mindset": "현금 5,000원을 준비하여 마음을 평온히 하고, '풍요와 감사가 내게 넘쳐흐른다'는 긍정의 확언과 함께 구입하세요.",
     }
 
 
@@ -105,8 +123,9 @@ def print_cli_report(analyzer: LottoAnalyzer, types_data: list):
     print(f" • 최장기 미출현 TOP 5: {top_5_cold}")
     print("-" * 76)
     print(f" 🔮 [모든 운의 기운이 충만한 황금 추첨 일시]: 매주 {fortune['draw_day']} {fortune['draw_time']}")
-    print(f"    - 운의 기운: {fortune['draw_energy']}")
+    print(f"    ⏰ 30분 전 알람 시각: {fortune['draw_day']} {fortune['draw_alarm_time']}")
     print(f" 🛒 [로또 구매 최적 일시]: {fortune['buy_day']} {fortune['buy_time']}")
+    print(f"    ⏰ 30분 전 알람 시각: {fortune['buy_day']} {fortune['buy_alarm_time']}")
     print(f"    - 행운의 방위: {fortune['buy_direction']}")
     print("-" * 76)
 
@@ -137,7 +156,6 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
     last_item = analyzer.history[-1]
     fortune = calculate_fortune_timing(next_round)
 
-    # JSON 데이터 직렬화
     types_json = json.dumps(initial_types, ensure_ascii=False)
     stats_json = json.dumps(stats, ensure_ascii=False)
     last_item_json = json.dumps(last_item, ensure_ascii=False)
@@ -161,7 +179,7 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="로또 5대유형" />
   <meta name="theme-color" content="#0b1120" />
-  <title>로또 6/45 제 {next_round}회 5대 유형 추천기 & 천운 예약</title>
+  <title>로또 6/45 제 {next_round}회 5대 유형 추천기 & 30분 전 알람</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -245,9 +263,7 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       word-break: keep-all;
     }}
 
-    /* ======================================================== */
     /* 🔮 [황금 천운 & 구매 일시 지정 카드] */
-    /* ======================================================== */
     .fortune-card {{
       background: linear-gradient(145deg, rgba(30, 41, 59, 0.95) 0%, rgba(20, 29, 47, 0.95) 100%);
       border: 1.5px solid rgba(251, 191, 36, 0.4);
@@ -323,6 +339,105 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       line-height: 1.4;
     }}
 
+    /* ⏰ [추첨 & 구매 30분 전 알람 섹션] */
+    .alarm-section {{
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 14px;
+      padding: 14px;
+      margin: 12px 0;
+    }}
+    .alarm-header {{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }}
+    .alarm-title {{
+      font-weight: 800;
+      color: #fff;
+      font-size: 0.88rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }}
+    .alarm-badge {{
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+    }}
+    .alarm-badge.active {{
+      background: rgba(16, 185, 129, 0.2);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      font-weight: 700;
+    }}
+    .alarm-grid {{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }}
+    .alarm-item {{
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      padding: 10px;
+    }}
+    .alarm-item-label {{
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+    }}
+    .alarm-item-time {{
+      font-size: clamp(0.9rem, 2.9vw, 1.05rem);
+      font-weight: 800;
+      color: var(--accent);
+    }}
+    .alarm-item-desc {{
+      font-size: 0.68rem;
+      color: #94a3b8;
+      margin-top: 3px;
+      line-height: 1.3;
+    }}
+    .alarm-btn-wrap {{
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }}
+    .btn-alarm {{
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      touch-action: manipulation;
+    }}
+    .btn-alarm:active {{
+      transform: scale(0.97);
+    }}
+    .btn-cal {{
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+    }}
+    .btn-web {{
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      color: var(--accent);
+    }}
+    .btn-web:active {{
+      background: rgba(56, 189, 248, 0.3);
+    }}
+
     /* 주간 확정 잠금 버튼 */
     .btn-lock {{
       width: 100%;
@@ -347,7 +462,7 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       transform: scale(0.97);
     }}
 
-    /* 확정 봉인 배너 (잠겼을 때 표시) */
+    /* 확정 봉인 배너 */
     .lock-banner {{
       display: none;
       background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.1) 100%);
@@ -468,7 +583,7 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       padding: 10px;
     }}
 
-    /* 🔥 [핵심] 유형 1, 2, 3, 4, 5 가로 한 줄 뱃지 네비게이션 바 */
+    /* 유형 1, 2, 3, 4, 5 가로 한 줄 뱃지 네비게이션 바 */
     .type-pill-bar {{
       display: flex;
       align-items: center;
@@ -535,7 +650,7 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       font-weight: 700;
     }}
 
-    /* 번호 볼 공통 (모바일 1줄 밀착 배치) */
+    /* 번호 볼 공통 */
     .ball-wrap {{
       display: flex;
       align-items: center;
@@ -929,6 +1044,39 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
         </div>
       </div>
 
+      <!-- ⏰ [추첨 & 구매 30분 전 알람 센터] -->
+      <div class="alarm-section">
+        <div class="alarm-header">
+          <span class="alarm-title">
+            ⏰ 30분 전 황금 타이밍 알람
+          </span>
+          <span class="alarm-badge" id="alarmStatusBadge">알람 미등록</span>
+        </div>
+        <div class="alarm-grid">
+          <!-- 추첨 30분 전 -->
+          <div class="alarm-item">
+            <div class="alarm-item-label">🎯 추첨 30분 전</div>
+            <div class="alarm-item-time">{fortune['draw_day']} {fortune['draw_alarm_time']}</div>
+            <div class="alarm-item-desc">기운 집결 & 5대 유형 추첨 준비</div>
+          </div>
+          <!-- 구매 30분 전 -->
+          <div class="alarm-item">
+            <div class="alarm-item-label">🛒 구매 30분 전</div>
+            <div class="alarm-item-time">{fortune['buy_day']} {fortune['buy_alarm_time']}</div>
+            <div class="alarm-item-desc">현금 지참 & 명당 판매점 이동</div>
+          </div>
+        </div>
+
+        <div class="alarm-btn-wrap">
+          <button class="btn-alarm btn-cal" onclick="addToPhoneCalendar()">
+            <span>📅 스마트폰 캘린더에 30분 전 알람 추가 (소리/진동)</span>
+          </button>
+          <button class="btn-alarm btn-web" onclick="enableWebNotification()">
+            <span>🔔 브라우저 30분 전 실시간 알림 켜기</span>
+          </button>
+        </div>
+      </div>
+
       <!-- 주간 확정 잠금 버튼 -->
       <button class="btn-lock" id="btnLock" onclick="lockWeeklyReservation()">
         <span>🔒 이번 회차({next_round}회) 황금 일시로 확정 & 주간 잠금</span>
@@ -1054,9 +1202,9 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
     let isLocked = false;
     let lockTimerInterval = null;
 
-    // 로컬 스토리지 키
     const STORAGE_KEY_LOCK = `lotto_lock_${{FORTUNE.next_round}}`;
     const STORAGE_KEY_DATA = `lotto_types_${{FORTUNE.next_round}}`;
+    const STORAGE_KEY_ALARM = `lotto_alarm_registered_${{FORTUNE.next_round}}`;
 
     function getBallClass(num) {{
       if (num >= 1 && num <= 10) return 'yellow';
@@ -1096,6 +1244,123 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
     }}
 
     // ==========================================
+    // ⏰ [추첨 & 구매 30분 전 알람 및 캘린더 등록]
+    // ==========================================
+    function checkAlarmStatus() {{
+      const registered = localStorage.getItem(STORAGE_KEY_ALARM);
+      const badge = document.getElementById('alarmStatusBadge');
+      if (registered === 'true' && badge) {{
+        badge.innerText = '알람 활성화됨 ✓';
+        badge.classList.add('active');
+      }}
+    }}
+
+    // 요일 이름 -> 이번 주 기준 날짜 계산
+    function getNextDayOfWeek(dayName) {{
+      const days = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+      const targetDay = days.indexOf(dayName);
+      const now = new Date();
+      const result = new Date(now);
+      const diff = (targetDay - now.getDay() + 7) % 7;
+      result.setDate(now.getDate() + (diff === 0 ? 7 : diff));
+      return result;
+    }}
+
+    function formatICSDate(date) {{
+      return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    }}
+
+    // 스마트폰 캘린더(.ics)에 30분 전 알람 포함 자동 등록
+    function addToPhoneCalendar() {{
+      const drawDate = getNextDayOfWeek(FORTUNE.draw_day);
+      drawDate.setHours(FORTUNE.draw_hour, FORTUNE.draw_min, FORTUNE.draw_sec, 0);
+
+      const buyDate = getNextDayOfWeek(FORTUNE.buy_day);
+      buyDate.setHours(FORTUNE.buy_hour, FORTUNE.buy_min, 0, 0);
+
+      const drawEnd = new Date(drawDate.getTime() + 15 * 60 * 1000);
+      const buyEnd = new Date(buyDate.getTime() + 30 * 60 * 1000);
+
+      const icsData = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//Lotto 5-Type Recommender//KR',
+        'CALSCALE:GREGORIAN',
+        'METHOD:PUBLISH',
+
+        // 이벤트 1: 황금 추첨 30분 전 알람
+        'BEGIN:VEVENT',
+        `UID:lotto-draw-${{FORTUNE.next_round}}@lotto.local`,
+        `DTSTAMP:${{formatICSDate(new Date())}}`,
+        `DTSTART:${{formatICSDate(drawDate)}}`,
+        `DTEND:${{formatICSDate(drawEnd)}}`,
+        `SUMMARY:🎯 [로또 제${{FORTUNE.next_round}}회] 황금 추첨 시간 (30분 전 알람)`,
+        `DESCRIPTION:모든 운의 기운이 충만한 황금 추첨 시간입니다!\\n운의 기운: ${{FORTUNE.draw_energy}}`,
+        'STATUS:CONFIRMED',
+        'BEGIN:VALARM',
+        'TRIGGER:-PT30M',
+        'ACTION:DISPLAY',
+        'DESCRIPTION:⏰ 로또 5대유형 황금 추첨 30분 전입니다! 기운을 모아 번호를 확인하세요.',
+        'END:VALARM',
+        'END:VEVENT',
+
+        // 이벤트 2: 로또 구매 30분 전 알람
+        'BEGIN:VEVENT',
+        `UID:lotto-buy-${{FORTUNE.next_round}}@lotto.local`,
+        `DTSTAMP:${{formatICSDate(new Date())}}`,
+        `DTSTART:${{formatICSDate(buyDate)}}`,
+        `DTEND:${{formatICSDate(buyEnd)}}`,
+        `SUMMARY:🛒 [로또 제${{FORTUNE.next_round}}회] 로또 구매 골든타임 (30분 전 알람)`,
+        `DESCRIPTION:로또 구매 최적 길시입니다!\\n명당 방위: ${{FORTUNE.buy_direction}}\\n구매 팁: ${{FORTUNE.mindset}}`,
+        'STATUS:CONFIRMED',
+        'BEGIN:VALARM',
+        'TRIGGER:-PT30M',
+        'ACTION:DISPLAY',
+        'DESCRIPTION:⏰ 로또 구매 골든타임 30분 전입니다! 현금 5,000원을 준비하여 명당 판매점으로 이동하세요.',
+        'END:VALARM',
+        'END:VEVENT',
+
+        'END:VCALENDAR'
+      ].join('\\r\\n');
+
+      const blob = new Blob([icsData], {{ type: 'text/calendar;charset=utf-8' }});
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `lotto_${{FORTUNE.next_round}}_alarm.ics`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      localStorage.setItem(STORAGE_KEY_ALARM, 'true');
+      checkAlarmStatus();
+      showToast('스마트폰 캘린더에 30분 전 알람이 등록되었습니다! 📅');
+    }}
+
+    // 브라우저 웹 알림(Web Notification) 권한 요청 및 활성화
+    function enableWebNotification() {{
+      if (!('Notification' in window)) {{
+        showToast('이 브라우저는 웹 푸시를 지원하지 않습니다. 캘린더 알람을 이용해주세요.');
+        return;
+      }}
+
+      Notification.requestPermission().then((permission) => {{
+        if (permission === 'granted') {{
+          localStorage.setItem(STORAGE_KEY_ALARM, 'true');
+          checkAlarmStatus();
+          new Notification('🎯 로또 5대유형 30분 전 알람 활성화 완료', {{
+            body: `제 ${{FORTUNE.next_round}}회 추첨(${{FORTUNE.draw_alarm_time}}) 및 구매(${{FORTUNE.buy_alarm_time}}) 30분 전에 알람이 발송됩니다.`,
+            icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="%23f59e0b"/><text x="50" y="62" font-size="38" text-anchor="middle" fill="%23fff" font-weight="bold">77</text></svg>'
+          }});
+          showToast('브라우저 30분 전 알림이 활성화되었습니다! 🔔');
+        }} else {{
+          showToast('알림 권한이 허용되지 않았습니다. 브라우저 설정에서 허용해 주세요.');
+        }}
+      }});
+    }}
+
+    // ==========================================
     // 🔒 [주간 1회 확정 잠금 & 천운 예약 시스템]
     // ==========================================
     function checkLockStatus() {{
@@ -1108,13 +1373,11 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
         const now = new Date().getTime();
 
         if (now < unlockTime) {{
-          // 아직 잠금 유지 기간
           isLocked = true;
           currentTypes = JSON.parse(savedData);
           applyLockedUI(unlockTime);
           return;
         }} else {{
-          // 잠금 만료 -> 자동 해제
           localStorage.removeItem(STORAGE_KEY_LOCK);
           localStorage.removeItem(STORAGE_KEY_DATA);
         }}
@@ -1129,7 +1392,6 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
         return;
       }}
 
-      // 다음 주 추첨 개방 시점 계산 (다음 주 일요일 09:00 또는 7일 뒤)
       const now = new Date();
       const unlockDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
       unlockDate.setHours(FORTUNE.draw_hour, FORTUNE.draw_min, FORTUNE.draw_sec, 0);
@@ -1162,7 +1424,6 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       btnLock.style.background = '#334155';
       btnLock.style.color = '#94a3b8';
 
-      // 재추첨 버튼 비활성화 텍스트
       const reGenBtn = document.getElementById('btnReGen');
       if (reGenBtn) {{
         reGenBtn.innerHTML = '<span>🔒 이번 회차 번호 봉인됨</span>';
@@ -1174,7 +1435,6 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
         bottomBtn.style.opacity = '0.7';
       }}
 
-      // 카운트다운 타이머 시작
       if (lockTimerInterval) clearInterval(lockTimerInterval);
       updateCountdown(unlockTime);
       lockTimerInterval = setInterval(() => updateCountdown(unlockTime), 1000);
@@ -1565,6 +1825,7 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
 
     // 초기화 실행
     checkLockStatus();
+    checkAlarmStatus();
     renderTypes();
     renderStatsRanks();
   </script>
