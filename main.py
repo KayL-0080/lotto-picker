@@ -30,11 +30,68 @@ def get_ball_class(num: int) -> str:
         return "green"
 
 
+def calculate_fortune_timing(next_round: int) -> dict:
+    """
+    모든 운의 기운(기문둔갑 8문, 사주 명리 오행 길시, 수비학, 목성/금성 번영 시진)을
+    종합하여 매 회차 최적의 [황금 추첨 일시]와 [로또 구매 최적 일시]를 산출합니다.
+    """
+    # 전통 명리학과 복권 통계상 가장 재물운이 왕성한 요일은 목(木:목생화)과 금(金:재물결실)
+    day_options = ["수요일", "목요일", "금요일"]
+    lucky_day = day_options[(next_round * 3) % len(day_options)]
+
+    # 길시: 오시(午時 11~13 태양양기), 신시(申時 15~17 금수쌍청), 유시(酉時 17~19 금기운왕성)
+    time_presets = [
+        (15, 7, 33, "신시(申時) 🌟 금수쌍청(金水雙淸) 재물왕성 길시 & 수비학 33초"),
+        (16, 48, 55, "신시(申時) 🌟 생기복덕(生氣福德) 기문둔갑 대길시 & 엔젤넘버 55초"),
+        (11, 28, 7, "오시(午時) 🌟 태양양기 극대화 천을귀인 길시 & 럭키 7초"),
+        (17, 33, 11, "유시(酉時) 🌟 결실과 황금의 금기운 왕성 길시 & 마스터 11초"),
+    ]
+    h, m, s, energy_desc = time_presets[(next_round * 7) % len(time_presets)]
+
+    # 언제 로또를 사야 하는가? (Golden Buying Window)
+    buy_days = ["목요일", "금요일", "토요일 오전"]
+    buy_day = buy_days[(next_round * 2) % len(buy_days)]
+    
+    buy_time_ranges = [
+        ("오후 03시 15분 ~ 04시 45분", "신시(申時) 금전운 상승 구간"),
+        ("오전 11시 30분 ~ 오후 01시 10분", "오시(午時) 양기 충만 귀인 구간"),
+        ("오후 05시 20분 ~ 06시 50분", "유시(酉時) 결실과 수확 구간"),
+        ("오전 10시 10분 ~ 11시 50분", "사시(巳時) 재물 태동 구간"),
+    ]
+    buy_time, buy_time_desc = buy_time_ranges[(next_round * 5) % len(buy_time_ranges)]
+
+    # 길한 구매 명당 방위 (현재 계신 곳 기준)
+    directions = [
+        "현재 계신 곳 기준 [동남쪽 (손방 巽方 - 재물과 번영의 방위)] 판매점",
+        "현재 계신 곳 기준 [서북쪽 (건방 乾方 - 하늘의 큰 뜻과 대운 방위)] 판매점",
+        "현재 계신 곳 기준 [남쪽 (오방 午方 - 광명과 당첨 불꽃의 방위)] 판매점",
+        "현재 계신 곳 기준 [동북쪽 (간방 艮方 - 새로운 시작과 생기 방위)] 판매점",
+    ]
+    lucky_direction = directions[(next_round * 11) % len(directions)]
+
+    return {
+        "next_round": next_round,
+        "draw_day": lucky_day,
+        "draw_time": f"{h:02d}시 {m:02d}분 {s:02d}초",
+        "draw_time_short": f"{h:02d}:{m:02d}:{s:02d}",
+        "draw_hour": h,
+        "draw_min": m,
+        "draw_sec": s,
+        "draw_energy": energy_desc,
+        "buy_day": buy_day,
+        "buy_time": buy_time,
+        "buy_time_desc": buy_time_desc,
+        "buy_direction": lucky_direction,
+        "mindset": "현금 5,000원을 깨끗한 지폐로 준비하여 마음속으로 '풍요와 감사가 내게 넘쳐흐른다'는 확언과 함께 구입할 때 천운이 극대화됩니다.",
+    }
+
+
 def print_cli_report(analyzer: LottoAnalyzer, types_data: list):
     """콘솔 터미널에 5가지 유형 추천 결과를 보기 좋게 출력합니다."""
     stats = analyzer.get_summary_statistics()
     next_round = analyzer.next_round
     latest_round = analyzer.latest_round
+    fortune = calculate_fortune_timing(next_round)
 
     print("\n" + "=" * 76)
     print(f"       [LOTTO 6/45] 제 {next_round}회차 대비 정밀 통계 분석 & 5대 추천 유형")
@@ -46,6 +103,11 @@ def print_cli_report(analyzer: LottoAnalyzer, types_data: list):
     top_5_cold = ", ".join(f"{item['number']}번({item['omission']}주 미출)" for item in stats['top_10_cold'][:5])
     print(f" • 역대 최다 빈출 TOP 5: {top_5_hot}")
     print(f" • 최장기 미출현 TOP 5: {top_5_cold}")
+    print("-" * 76)
+    print(f" 🔮 [모든 운의 기운이 충만한 황금 추첨 일시]: 매주 {fortune['draw_day']} {fortune['draw_time']}")
+    print(f"    - 운의 기운: {fortune['draw_energy']}")
+    print(f" 🛒 [로또 구매 최적 일시]: {fortune['buy_day']} {fortune['buy_time']}")
+    print(f"    - 행운의 방위: {fortune['buy_direction']}")
     print("-" * 76)
 
     type_icons = ["[Type 1]", "[Type 2]", "[Type 3]", "[Type 4]", "[Type 5]"]
@@ -73,11 +135,13 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
     next_round = analyzer.next_round
     latest_round = analyzer.latest_round
     last_item = analyzer.history[-1]
+    fortune = calculate_fortune_timing(next_round)
 
     # JSON 데이터 직렬화
     types_json = json.dumps(initial_types, ensure_ascii=False)
     stats_json = json.dumps(stats, ensure_ascii=False)
     last_item_json = json.dumps(last_item, ensure_ascii=False)
+    fortune_json = json.dumps(fortune, ensure_ascii=False)
 
     all_freq_json = json.dumps(dict(analyzer.all_freq), ensure_ascii=False)
     recent_30_json = json.dumps(dict(analyzer.recent_30_freq), ensure_ascii=False)
@@ -97,7 +161,7 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="로또 5대유형" />
   <meta name="theme-color" content="#0b1120" />
-  <title>로또 6/45 제 {next_round}회 5대 유형 추천기 (모바일 최적화)</title>
+  <title>로또 6/45 제 {next_round}회 5대 유형 추천기 & 천운 예약</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -111,6 +175,8 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       --text-muted: #94a3b8;
       --accent: #38bdf8;
       --accent-glow: rgba(56, 189, 248, 0.25);
+      --gold: #fbbf24;
+      --gold-glow: rgba(251, 191, 36, 0.25);
       --success: #10b981;
       --warning: #f59e0b;
       --danger: #ef4444;
@@ -132,7 +198,7 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       background: radial-gradient(circle at 50% 0%, #1e293b 0%, #0b1120 100%);
       color: var(--text-main);
       min-height: 100vh;
-      /* 아이폰 노치 및 다이내믹 아일랜드 완벽 대응 Safe Area */
+      /* 아이폰 노치 및 다이내믹 아일랜드 대응 Safe Area */
       padding-top: calc(env(safe-area-inset-top, 34px) + 18px);
       padding-left: calc(env(safe-area-inset-left, 0px) + 14px);
       padding-right: calc(env(safe-area-inset-right, 0px) + 14px);
@@ -146,10 +212,9 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       margin: 0 auto;
     }}
 
-    /* 상단 헤더 (아이폰 노치 아래 안전 영역 확보) */
     header {{
       text-align: center;
-      padding: 10px 4px 18px 4px;
+      padding: 10px 4px 16px 4px;
     }}
     .badge {{
       display: inline-flex;
@@ -162,7 +227,7 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       border-radius: 999px;
       font-size: 0.78rem;
       font-weight: 700;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }}
     h1 {{
       font-size: clamp(1.5rem, 5.2vw, 2.1rem);
@@ -180,12 +245,162 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       word-break: keep-all;
     }}
 
-    /* 상단 요약 그리드 (모바일 2x2 반응형) */
+    /* ======================================================== */
+    /* 🔮 [황금 천운 & 구매 일시 지정 카드] */
+    /* ======================================================== */
+    .fortune-card {{
+      background: linear-gradient(145deg, rgba(30, 41, 59, 0.95) 0%, rgba(20, 29, 47, 0.95) 100%);
+      border: 1.5px solid rgba(251, 191, 36, 0.4);
+      border-radius: 20px;
+      padding: 18px 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35), inset 0 0 20px rgba(251, 191, 36, 0.05);
+      position: relative;
+      overflow: hidden;
+    }}
+    .fortune-card::before {{
+      content: '';
+      position: absolute;
+      top: -40px;
+      right: -40px;
+      width: 120px;
+      height: 120px;
+      background: radial-gradient(circle, rgba(251, 191, 36, 0.15) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }}
+    .fortune-header {{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }}
+    .fortune-title {{
+      font-size: 1.05rem;
+      font-weight: 900;
+      color: var(--gold);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }}
+    .fortune-pill {{
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      background: rgba(251, 191, 36, 0.15);
+      border: 1px solid rgba(251, 191, 36, 0.3);
+      color: var(--gold);
+      border-radius: 6px;
+      font-weight: 700;
+    }}
+    
+    .timing-box {{
+      background: rgba(11, 17, 32, 0.6);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }}
+    .timing-label {{
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }}
+    .timing-value {{
+      font-size: clamp(1.05rem, 3.8vw, 1.3rem);
+      font-weight: 900;
+      color: #fff;
+    }}
+    .timing-highlight {{
+      color: var(--gold);
+    }}
+    .timing-desc {{
+      font-size: 0.75rem;
+      color: #94a3b8;
+      margin-top: 4px;
+      line-height: 1.4;
+    }}
+
+    /* 주간 확정 잠금 버튼 */
+    .btn-lock {{
+      width: 100%;
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: #0b1120;
+      font-weight: 900;
+      font-size: 0.95rem;
+      padding: 13px 16px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 18px rgba(245, 158, 11, 0.35);
+      transition: all 0.2s ease;
+      margin-top: 10px;
+      touch-action: manipulation;
+    }}
+    .btn-lock:active {{
+      transform: scale(0.97);
+    }}
+
+    /* 확정 봉인 배너 (잠겼을 때 표시) */
+    .lock-banner {{
+      display: none;
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.1) 100%);
+      border: 1.5px solid var(--gold);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 18px;
+      text-align: center;
+      animation: pulseGlow 2.5s infinite;
+    }}
+    @keyframes pulseGlow {{
+      0%, 100% {{ box-shadow: 0 0 15px rgba(251, 191, 36, 0.2); }}
+      50% {{ box-shadow: 0 0 25px rgba(251, 191, 36, 0.4); }}
+    }}
+    .lock-badge {{
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+      font-weight: 900;
+      color: var(--gold);
+      padding: 4px 10px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 999px;
+      margin-bottom: 6px;
+    }}
+    .lock-countdown {{
+      font-size: 1.15rem;
+      font-weight: 900;
+      color: #fff;
+      margin: 4px 0;
+      letter-spacing: 0.5px;
+    }}
+    .lock-sub {{
+      font-size: 0.74rem;
+      color: #cbd5e1;
+    }}
+    .btn-unlock-secret {{
+      background: none;
+      border: none;
+      color: #64748b;
+      font-size: 0.68rem;
+      text-decoration: underline;
+      cursor: pointer;
+      margin-top: 6px;
+    }}
+
+    /* 요약 그리드 */
     .summary-grid {{
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 10px;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }}
     .summary-card {{
       background: var(--card-bg);
@@ -213,12 +428,12 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       margin-top: 2px;
     }}
 
-    /* 상단 액션 버튼 (모바일 최적화 그리드) */
+    /* 모바일 액션 버튼 */
     .action-grid {{
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }}
     .btn {{
       display: inline-flex;
@@ -253,15 +468,13 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       padding: 10px;
     }}
 
-    /* ======================================================== */
     /* 🔥 [핵심] 유형 1, 2, 3, 4, 5 가로 한 줄 뱃지 네비게이션 바 */
-    /* ======================================================== */
     .type-pill-bar {{
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 4px;
-      margin: 10px 0 18px 0;
+      margin: 10px 0 16px 0;
       padding: 4px 2px;
       overflow-x: auto;
       white-space: nowrap;
@@ -389,7 +602,7 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       opacity: 0.7;
     }}
 
-    /* 5대 유형 카드 (모바일 최적화) */
+    /* 5대 유형 카드 */
     .type-card {{
       background: var(--card-bg);
       border: 1px solid var(--card-border);
@@ -400,8 +613,6 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       position: relative;
       scroll-margin-top: 20px;
     }}
-    
-    /* 카드 상단: [유형 1] 뱃지와 제목을 한 줄(Row)로 밀착 배치 */
     .type-card-top {{
       display: flex;
       justify-content: space-between;
@@ -470,7 +681,6 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       word-break: keep-all;
     }}
 
-    /* 지표 칩 리스트 (한 줄 밀착 레이아웃) */
     .metrics-grid {{
       display: flex;
       flex-wrap: nowrap;
@@ -501,7 +711,6 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       font-weight: 700;
     }}
 
-    /* 상세 사유 아코디언 */
     .reasons-details {{
       margin-top: 10px;
       padding-top: 8px;
@@ -523,7 +732,7 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       line-height: 1.5;
     }}
 
-    /* 통계 랭킹 섹션 (모바일 바 그래프 디자인) */
+    /* 통계 랭킹 섹션 */
     .stats-card {{
       background: var(--card-bg);
       border: 1px solid var(--card-border);
@@ -563,7 +772,7 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       text-align: right;
     }}
 
-    /* 하단 모바일 고정 빠른 바 (아이폰 홈 인디케이터 대응) */
+    /* 하단 모바일 고정 바 */
     .bottom-bar {{
       position: fixed;
       bottom: 0;
@@ -586,7 +795,7 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       font-size: 0.9rem;
     }}
 
-    /* 모바일 토스트 (아이폰 노치/다이내믹 아일랜드 아래 안전 영역) */
+    /* 모바일 토스트 */
     .toast {{
       position: fixed;
       top: calc(env(safe-area-inset-top, 30px) + 14px);
@@ -609,7 +818,7 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       opacity: 1;
     }}
 
-    /* 쓸어내려 새로고침 (Pull-to-Refresh) 인디케이터 */
+    /* 쓸어내려 새로고침 인디케이터 */
     .pull-refresh-indicator {{
       position: fixed;
       top: calc(env(safe-area-inset-top, 30px) + 8px);
@@ -682,6 +891,61 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       <p class="subhead">빅데이터 수리 통계 모델 기반 당첨 확률 최적화 번호</p>
     </header>
 
+    <!-- 🔮 [모든 운의 기운이 충만한 황금 추첨 & 구매 일시 지정 카드] -->
+    <div class="fortune-card">
+      <div class="fortune-header">
+        <div class="fortune-title">
+          <span>🔮 모든 운의 기운이 충만한 황금 길시</span>
+        </div>
+        <span class="fortune-pill">천운(天運) 스케줄</span>
+      </div>
+
+      <!-- 추천 1: 황금 추첨 일시 -->
+      <div class="timing-box">
+        <div class="timing-label">
+          <span>🎯 제 {next_round}회 5대 유형 추천 추첨 일시</span>
+        </div>
+        <div class="timing-value">
+          매주 <span class="timing-highlight">{fortune['draw_day']}</span> <span class="timing-highlight">{fortune['draw_time']}</span>
+        </div>
+        <div class="timing-desc">
+          ✨ <strong>운의 기운:</strong> {fortune['draw_energy']}
+        </div>
+      </div>
+
+      <!-- 추천 2: 로또 구매 최적 일시 (언제 사야 하는지 딱 정해줌) -->
+      <div class="timing-box">
+        <div class="timing-label">
+          <span>🛒 로또 구매 최적 일시 (언제 사야 할까?)</span>
+        </div>
+        <div class="timing-value" style="color: #6ee7b7;">
+          {fortune['buy_day']} {fortune['buy_time']}
+        </div>
+        <div class="timing-desc">
+          📍 <strong>추천 명당 방위:</strong> {fortune['buy_direction']}
+        </div>
+        <div class="timing-desc" style="color: #94a3b8; margin-top:3px;">
+          💡 <strong>구매 팁:</strong> {fortune['mindset']}
+        </div>
+      </div>
+
+      <!-- 주간 확정 잠금 버튼 -->
+      <button class="btn-lock" id="btnLock" onclick="lockWeeklyReservation()">
+        <span>🔒 이번 회차({next_round}회) 황금 일시로 확정 & 주간 잠금</span>
+      </button>
+    </div>
+
+    <!-- 🔒 [확정 잠금 시 등장하는 상단 봉인 배너] -->
+    <div id="lockBanner" class="lock-banner">
+      <div class="lock-badge">🔒 제 {next_round}회 5대 유형 최종 확정 완료</div>
+      <div class="lock-sub">모든 운의 기운이 충만한 황금 일시에 맞추어 번호가 봉인되었습니다.</div>
+      <div class="lock-countdown" id="lockCountdown">다음 회차 추첨 개방까지: 계산 중...</div>
+      <div class="lock-sub">추가 추첨은 다음 주 황금 일시에 단 1번만 가능합니다. 🍀</div>
+      <div>
+        <button class="btn-unlock-secret" onclick="unlockReservationSecret()">[⚠️ 확정 봉인 해제 (초기화)]</button>
+      </div>
+    </div>
+
     <!-- 요약 통계 2x2 카드 -->
     <div class="summary-grid">
       <div class="summary-card full-width">
@@ -706,7 +970,7 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
 
     <!-- 모바일 컨트롤 액션 버튼 -->
     <div class="action-grid">
-      <button class="btn btn-primary" onclick="reGenerateAll()">
+      <button class="btn btn-primary" id="btnReGen" onclick="reGenerateAll()">
         <span>🔄 5가지 유형 다시 추첨하기</span>
       </button>
       <button class="btn btn-secondary" onclick="copyAllSets()">
@@ -757,13 +1021,13 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
 
     <footer>
       <p>동행복권(dhlottery.co.kr) 실제 1회부터 {latest_round}회까지의 공식 당첨 통계 기준</p>
-      <p style="margin-top: 4px;">행운을 빕니다! 🍀</p>
+      <p style="margin-top: 4px;">천운과 대박의 기운이 함께하시길 기원합니다! 🍀</p>
     </footer>
   </div>
 
   <!-- 하단 고정 퀵 액션 바 -->
   <div class="bottom-bar">
-    <button class="btn btn-primary" onclick="reGenerateAll()">
+    <button class="btn btn-primary" id="btnBottomReGen" onclick="reGenerateAll()">
       <span>🔄 원클릭 재추첨</span>
     </button>
     <button class="btn btn-secondary" style="flex: 0 0 auto; padding: 12px 18px;" onclick="copyAllSets()">
@@ -777,6 +1041,7 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
     const INITIAL_TYPES = {types_json};
     const STATS = {stats_json};
     const LAST_ITEM = {last_item_json};
+    const FORTUNE = {fortune_json};
     const ALL_FREQ = {all_freq_json};
     const RECENT_30 = {recent_30_json};
     const OMISSION = {omission_json};
@@ -786,6 +1051,12 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
 
     let currentTypes = [...INITIAL_TYPES];
     let selectedFilter = 'all';
+    let isLocked = false;
+    let lockTimerInterval = null;
+
+    // 로컬 스토리지 키
+    const STORAGE_KEY_LOCK = `lotto_lock_${{FORTUNE.next_round}}`;
+    const STORAGE_KEY_DATA = `lotto_types_${{FORTUNE.next_round}}`;
 
     function getBallClass(num) {{
       if (num >= 1 && num <= 10) return 'yellow';
@@ -799,7 +1070,7 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       const toast = document.getElementById('toast');
       toast.innerText = msg;
       toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 2000);
+      setTimeout(() => toast.classList.remove('show'), 2200);
     }}
 
     function copyText(text, msg = '복사 완료! ✓') {{
@@ -817,10 +1088,153 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
     }}
 
     function copyAllSets() {{
-      const text = currentTypes.map(t => 
+      const lockStatusText = isLocked ? `[제 ${{FORTUNE.next_round}}회 최종 확정 번호]` : `[제 ${{FORTUNE.next_round}}회 추천 번호]`;
+      const text = `${{lockStatusText}}\\n` + currentTypes.map(t => 
         `[유형 ${{t.type_id}}: ${{t.name}}] ${{t.numbers.map(n => String(n).padStart(2, '0')).join(' ')}} (보너스: ${{t.bonus}})`
       ).join('\\n');
       copyText(text, '5개 세트 전체 복사 완료! 📋');
+    }}
+
+    // ==========================================
+    // 🔒 [주간 1회 확정 잠금 & 천운 예약 시스템]
+    // ==========================================
+    function checkLockStatus() {{
+      const savedLock = localStorage.getItem(STORAGE_KEY_LOCK);
+      const savedData = localStorage.getItem(STORAGE_KEY_DATA);
+
+      if (savedLock && savedData) {{
+        const lockInfo = JSON.parse(savedLock);
+        const unlockTime = new Date(lockInfo.unlockTime).getTime();
+        const now = new Date().getTime();
+
+        if (now < unlockTime) {{
+          // 아직 잠금 유지 기간
+          isLocked = true;
+          currentTypes = JSON.parse(savedData);
+          applyLockedUI(unlockTime);
+          return;
+        }} else {{
+          // 잠금 만료 -> 자동 해제
+          localStorage.removeItem(STORAGE_KEY_LOCK);
+          localStorage.removeItem(STORAGE_KEY_DATA);
+        }}
+      }}
+      isLocked = false;
+      applyUnlockedUI();
+    }}
+
+    function lockWeeklyReservation() {{
+      if (isLocked) {{
+        showToast('이미 이번 회차 번호가 확정 봉인되어 있습니다! 🔒');
+        return;
+      }}
+
+      // 다음 주 추첨 개방 시점 계산 (다음 주 일요일 09:00 또는 7일 뒤)
+      const now = new Date();
+      const unlockDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      unlockDate.setHours(FORTUNE.draw_hour, FORTUNE.draw_min, FORTUNE.draw_sec, 0);
+
+      const lockPayload = {{
+        round: FORTUNE.next_round,
+        lockedAt: now.toISOString(),
+        unlockTime: unlockDate.toISOString()
+      }};
+
+      localStorage.setItem(STORAGE_KEY_LOCK, JSON.stringify(lockPayload));
+      localStorage.setItem(STORAGE_KEY_DATA, JSON.stringify(currentTypes));
+
+      isLocked = true;
+      applyLockedUI(unlockDate.getTime());
+
+      if (navigator.vibrate) {{
+        try {{ navigator.vibrate([40, 60, 40]); }} catch(e) {{}}
+      }}
+
+      showToast(`제 ${{FORTUNE.next_round}}회 5대 유형이 최종 확정 봉인되었습니다! 🔒`);
+    }}
+
+    function applyLockedUI(unlockTime) {{
+      const banner = document.getElementById('lockBanner');
+      banner.style.display = 'block';
+
+      const btnLock = document.getElementById('btnLock');
+      btnLock.innerHTML = '<span>🔒 이번 회차 확정 봉인 완료됨</span>';
+      btnLock.style.background = '#334155';
+      btnLock.style.color = '#94a3b8';
+
+      // 재추첨 버튼 비활성화 텍스트
+      const reGenBtn = document.getElementById('btnReGen');
+      if (reGenBtn) {{
+        reGenBtn.innerHTML = '<span>🔒 이번 회차 번호 봉인됨</span>';
+        reGenBtn.style.opacity = '0.7';
+      }}
+      const bottomBtn = document.getElementById('btnBottomReGen');
+      if (bottomBtn) {{
+        bottomBtn.innerHTML = '<span>🔒 번호 봉인됨</span>';
+        bottomBtn.style.opacity = '0.7';
+      }}
+
+      // 카운트다운 타이머 시작
+      if (lockTimerInterval) clearInterval(lockTimerInterval);
+      updateCountdown(unlockTime);
+      lockTimerInterval = setInterval(() => updateCountdown(unlockTime), 1000);
+    }}
+
+    function applyUnlockedUI() {{
+      const banner = document.getElementById('lockBanner');
+      banner.style.display = 'none';
+
+      const btnLock = document.getElementById('btnLock');
+      btnLock.innerHTML = '<span>🔒 이번 회차(' + FORTUNE.next_round + '회) 황금 일시로 확정 & 주간 잠금</span>';
+      btnLock.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+      btnLock.style.color = '#0b1120';
+
+      const reGenBtn = document.getElementById('btnReGen');
+      if (reGenBtn) {{
+        reGenBtn.innerHTML = '<span>🔄 5가지 유형 다시 추첨하기</span>';
+        reGenBtn.style.opacity = '1';
+      }}
+      const bottomBtn = document.getElementById('btnBottomReGen');
+      if (bottomBtn) {{
+        bottomBtn.innerHTML = '<span>🔄 원클릭 재추첨</span>';
+        bottomBtn.style.opacity = '1';
+      }}
+
+      if (lockTimerInterval) clearInterval(lockTimerInterval);
+    }}
+
+    function updateCountdown(targetTime) {{
+      const now = new Date().getTime();
+      const diff = targetTime - now;
+
+      if (diff <= 0) {{
+        clearInterval(lockTimerInterval);
+        localStorage.removeItem(STORAGE_KEY_LOCK);
+        isLocked = false;
+        applyUnlockedUI();
+        showToast('다음 회차 황금 추첨이 개방되었습니다! 🎯');
+        return;
+      }}
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      const el = document.getElementById('lockCountdown');
+      if (el) {{
+        el.innerText = `다음 추첨 개방: D-${{days}}일 ${{String(hours).padStart(2,'0')}}시간 ${{String(minutes).padStart(2,'0')}}분 ${{String(seconds).padStart(2,'0')}}초`;
+      }}
+    }}
+
+    function unlockReservationSecret() {{
+      if (confirm('정말로 확정 봉인을 해제하고 다시 번호를 추첨하시겠습니까?')) {{
+        localStorage.removeItem(STORAGE_KEY_LOCK);
+        localStorage.removeItem(STORAGE_KEY_DATA);
+        isLocked = false;
+        applyUnlockedUI();
+        showToast('확정 봉인이 해제되었습니다. 자유롭게 재추첨할 수 있습니다.');
+      }}
     }}
 
     function filterType(typeId, btnEl) {{
@@ -920,6 +1334,11 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
     }}
 
     async function reGenerateAll() {{
+      if (isLocked) {{
+        showToast('🔒 이번 회차 번호가 이미 확정되었습니다! (다음 주 황금 일시에 다시 추첨 가능)');
+        return;
+      }}
+
       showToast('새로운 확률 조합을 추출하는 중...');
       try {{
         const resp = await fetch('/api/generate', {{ cache: 'no-store' }});
@@ -987,12 +1406,10 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
     }}
 
     function clientSideReGenerate() {{
-      // Type 1: Hot
       const hotNums = Object.keys(RECENT_30).sort((a,b) => RECENT_30[b] - RECENT_30[a]).slice(0, 18).map(Number);
       currentTypes[0].numbers = sampleCombo(hotNums);
       updateMetrics(currentTypes[0]);
 
-      // Type 2: Cold
       const lastNums = LAST_ITEM.numbers;
       const coldNums = Object.keys(OMISSION).sort((a,b) => (OMISSION[b]/AVG_INTERVAL[b]) - (OMISSION[a]/AVG_INTERVAL[a])).slice(0, 14).map(Number);
       const carry = [lastNums[Math.floor(Math.random() * lastNums.length)]];
@@ -1000,7 +1417,6 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       currentTypes[1].numbers = [...carry, ...otherColds].sort((a,b) => a - b);
       updateMetrics(currentTypes[1]);
 
-      // Type 3: Golden
       const s1 = [1,2,3,4,5,6,7,8,9,10];
       const s2 = [11,12,13,14,15,16,17,18,19,20];
       const s3 = [21,22,23,24,25,26,27,28,29,30];
@@ -1027,14 +1443,12 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       }}
       updateMetrics(currentTypes[2]);
 
-      // Type 4: Consecutive
       const consecStart = Math.floor(Math.random() * 40) + 1;
       const consec = [consecStart, consecStart + 1];
       const remain = sampleN(Array.from({{length:45}}, (_,i)=>i+1).filter(x => !consec.includes(x)), 4);
       currentTypes[3].numbers = [...consec, ...remain].sort((a,b) => a - b);
       updateMetrics(currentTypes[3]);
 
-      // Type 5: Hybrid
       const pool = Object.keys(ALL_FREQ).sort((a,b) => ALL_FREQ[b] - ALL_FREQ[a]).slice(0, 22).map(Number);
       currentTypes[4].numbers = sampleCombo(pool);
       updateMetrics(currentTypes[4]);
@@ -1055,9 +1469,6 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       }}
     }}
 
-    renderTypes();
-    renderStatsRanks();
-
     // ==========================================
     // 📱 모바일 화면 쓸어내려 새로고침 (Pull-to-Refresh)
     // ==========================================
@@ -1068,7 +1479,7 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
     let touchStartY = 0;
     let isPulling = false;
     let isRefreshing = false;
-    const PULL_THRESHOLD = 70; // 당김 트리거 기준 거리 (px)
+    const PULL_THRESHOLD = 70;
 
     window.addEventListener('touchstart', (e) => {{
       if (window.scrollY <= 2 && !isRefreshing) {{
@@ -1083,12 +1494,14 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       const diffY = currentY - touchStartY;
 
       if (diffY > 8 && window.scrollY <= 2) {{
-        // 자연스러운 물리 탄성 저항감 계산
         const pullDistance = Math.min(Math.pow(diffY, 0.82) * 1.5, 95);
         pullIndicator.style.opacity = String(Math.min(pullDistance / 45, 1));
         pullIndicator.style.transform = `translate(-50%, ${{pullDistance - 55}}px)`;
 
-        if (pullDistance >= PULL_THRESHOLD) {{
+        if (isLocked) {{
+          pullText.innerText = '🔒 이번 회차 번호가 이미 확정되었습니다';
+          pullIndicator.style.borderColor = '#f59e0b';
+        }} else if (pullDistance >= PULL_THRESHOLD) {{
           pullIcon.style.transform = 'rotate(180deg)';
           pullText.innerText = '손을 놓으면 새로운 번호 추첨! 🎯';
           pullIndicator.style.borderColor = '#10b981';
@@ -1109,7 +1522,13 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       const pullDistance = Math.min(Math.pow(Math.max(0, diffY), 0.82) * 1.5, 95);
 
       if (pullDistance >= PULL_THRESHOLD && window.scrollY <= 2) {{
-        await triggerPullRefresh();
+        if (isLocked) {{
+          pullIndicator.style.transform = 'translate(-50%, -90px)';
+          pullIndicator.style.opacity = '0';
+          showToast('🔒 이번 회차 번호가 이미 확정되었습니다!');
+        }} else {{
+          await triggerPullRefresh();
+        }}
       }} else {{
         pullIndicator.style.transform = 'translate(-50%, -90px)';
         pullIndicator.style.opacity = '0';
@@ -1127,7 +1546,6 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       pullIcon.classList.add('spinner-spin');
       pullText.innerText = '5대 유형 새로 분석 & 추첨 중...';
 
-      // 5가지 유형 새로 추첨 실행
       await reGenerateAll();
 
       pullIcon.classList.remove('spinner-spin');
@@ -1144,6 +1562,11 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
         isRefreshing = false;
       }}, 750);
     }}
+
+    // 초기화 실행
+    checkLockStatus();
+    renderTypes();
+    renderStatsRanks();
   </script>
 </body>
 </html>
