@@ -214,7 +214,7 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
-      margin-bottom: 22px;
+      margin-bottom: 18px;
     }}
     .btn {{
       display: inline-flex;
@@ -249,12 +249,57 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       padding: 10px;
     }}
 
+    /* ======================================================== */
+    /* 🔥 [핵심] 유형 1, 2, 3, 4, 5 가로 한 줄 뱃지 네비게이션 바 */
+    /* ======================================================== */
+    .type-pill-bar {{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+      margin: 10px 0 18px 0;
+      padding: 4px 2px;
+      overflow-x: auto;
+      white-space: nowrap;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }}
+    .type-pill-bar::-webkit-scrollbar {{
+      display: none;
+    }}
+    .pill-btn {{
+      flex: 1 1 0px;
+      padding: 9px 4px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+      font-size: clamp(0.72rem, 2.4vw, 0.84rem);
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }}
+    .pill-btn:active {{
+      transform: scale(0.95);
+    }}
+    .pill-btn.active {{
+      background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+      color: #0b1120;
+      font-weight: 900;
+      border-color: #38bdf8;
+      box-shadow: 0 2px 10px rgba(56, 189, 248, 0.4);
+    }}
+
     /* 섹션 타이틀 */
     .section-header {{
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin: 24px 4px 12px 4px;
+      margin: 20px 4px 10px 4px;
     }}
     .section-title {{
       font-size: 1.15rem;
@@ -349,44 +394,48 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       margin-bottom: 16px;
       box-shadow: 0 4px 16px rgba(0,0,0,0.25);
       position: relative;
+      scroll-margin-top: 20px;
     }}
+    
+    /* 카드 상단: [유형 1] 뱃지와 제목을 한 줄(Row)로 밀착 배치 */
     .type-card-top {{
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
+      align-items: center;
       gap: 8px;
+      margin-bottom: 4px;
     }}
-    .type-badge-row {{
+    .type-header-left {{
       display: flex;
       align-items: center;
-      gap: 6px;
-      margin-bottom: 2px;
+      gap: 7px;
+      flex-wrap: nowrap;
+      min-width: 0;
     }}
     .type-chip {{
-      padding: 2px 8px;
+      padding: 3px 8px;
       border-radius: 6px;
-      font-size: 0.72rem;
+      font-size: 0.74rem;
       font-weight: 800;
       background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.35);
       color: var(--accent);
+      white-space: nowrap;
+      flex-shrink: 0;
     }}
     .type-title {{
-      font-size: 1.15rem;
+      font-size: clamp(0.98rem, 3.5vw, 1.15rem);
       font-weight: 800;
       color: #fff;
-      line-height: 1.3;
-    }}
-    .type-desc-sub {{
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      margin-top: 2px;
-      word-break: keep-all;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }}
     .btn-copy {{
       background: #334155;
       border: 1px solid rgba(255,255,255,0.1);
       color: #f1f5f9;
-      padding: 6px 10px;
+      padding: 6px 11px;
       border-radius: 8px;
       font-size: 0.75rem;
       font-weight: 700;
@@ -399,11 +448,17 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       background: var(--accent);
       color: #0b1120;
     }}
+    .type-desc-sub {{
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      margin: 2px 0 8px 0;
+      word-break: keep-all;
+    }}
     .type-concept-box {{
       font-size: 0.8rem;
       color: #cbd5e1;
       line-height: 1.5;
-      margin: 10px 0;
+      margin: 8px 0 10px 0;
       padding: 9px 12px;
       border-radius: 10px;
       background: rgba(0,0,0,0.25);
@@ -411,23 +466,31 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       word-break: keep-all;
     }}
 
-    /* 지표 칩 리스트 */
+    /* 지표 칩 리스트 (한 줄 밀착 레이아웃) */
     .metrics-grid {{
       display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
+      flex-wrap: nowrap;
+      gap: 4px;
       margin-top: 10px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }}
+    .metrics-grid::-webkit-scrollbar {{
+      display: none;
     }}
     .metric-tag {{
+      flex: 1 1 0px;
       background: rgba(255,255,255,0.05);
       border: 1px solid rgba(255,255,255,0.06);
-      padding: 4px 8px;
+      padding: 5px 4px;
       border-radius: 6px;
-      font-size: 0.72rem;
+      font-size: clamp(0.68rem, 2vw, 0.74rem);
       color: var(--text-muted);
       display: flex;
       align-items: center;
-      gap: 4px;
+      justify-content: center;
+      gap: 3px;
+      white-space: nowrap;
     }}
     .metric-tag strong {{
       color: #f8fafc;
@@ -496,7 +559,7 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       text-align: right;
     }}
 
-    /* 하단 모바일 고정 빠른 바 (Floating Bottom Bar) */
+    /* 하단 모바일 고정 빠른 바 (스마트폰 엄지 터치 최적화) */
     .bottom-bar {{
       position: fixed;
       bottom: 0;
@@ -595,7 +658,7 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       </button>
     </div>
 
-    <!-- 5대 추천 유형 섹션 -->
+    <!-- 5대 추천 유형 섹션 헤더 -->
     <div class="section-header">
       <div class="section-title">
         <span>🎯 5대 핵심 추천 유형</span>
@@ -603,6 +666,17 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       <span class="section-tag">제 {next_round}회차 대비</span>
     </div>
 
+    <!-- 🔥 [유형 1, 2, 3, 4, 5 한 줄 뱃지 네비게이션 바] -->
+    <div class="type-pill-bar">
+      <button class="pill-btn active" id="pill-all" onclick="filterType('all', this)">전체보기</button>
+      <button class="pill-btn" id="pill-1" onclick="filterType(1, this)">🔥 유형 1</button>
+      <button class="pill-btn" id="pill-2" onclick="filterType(2, this)">❄️ 유형 2</button>
+      <button class="pill-btn" id="pill-3" onclick="filterType(3, this)">⚖️ 유형 3</button>
+      <button class="pill-btn" id="pill-4" onclick="filterType(4, this)">🔗 유형 4</button>
+      <button class="pill-btn" id="pill-5" onclick="filterType(5, this)">🤖 유형 5</button>
+    </div>
+
+    <!-- 유형별 카드 컨테이너 -->
     <div id="types-container"></div>
 
     <!-- 핵심 통계 순위표 -->
@@ -628,7 +702,7 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
     </footer>
   </div>
 
-  <!-- 하단 고정 퀵 액션 바 (스마트폰 엄지 터치 최적화) -->
+  <!-- 하단 고정 퀵 액션 바 -->
   <div class="bottom-bar">
     <button class="btn btn-primary" onclick="reGenerateAll()">
       <span>🔄 원클릭 재추첨</span>
@@ -652,6 +726,7 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
     const MAX_COLD = {max_cold_omission};
 
     let currentTypes = [...INITIAL_TYPES];
+    let selectedFilter = 'all';
 
     function getBallClass(num) {{
       if (num >= 1 && num <= 10) return 'yellow';
@@ -689,9 +764,29 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       copyText(text, '5개 세트 전체 복사 완료! 📋');
     }}
 
+    function filterType(typeId, btnEl) {{
+      selectedFilter = typeId;
+      document.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+      btnEl.classList.add('active');
+
+      if (typeId === 'all') {{
+        renderTypes();
+      }} else {{
+        renderTypes();
+        const targetCard = document.getElementById(`type-card-${{typeId}}`);
+        if (targetCard) {{
+          targetCard.scrollIntoView({{ behavior: 'smooth', block: 'nearest' }});
+        }}
+      }}
+    }}
+
     function renderTypes() {{
       const container = document.getElementById('types-container');
-      container.innerHTML = currentTypes.map(t => {{
+      const filtered = selectedFilter === 'all' 
+        ? currentTypes 
+        : currentTypes.filter(t => t.type_id === Number(selectedFilter));
+
+      container.innerHTML = filtered.map(t => {{
         const m = t.metrics;
         const balls = t.numbers.map(n => `<div class="ball ball-${{getBallClass(n)}}">${{n}}</div>`).join('');
         const bonus = `<span class="plus-divider">+</span><div class="ball ball-${{getBallClass(t.bonus)}} ball-bonus" title="보너스">${{t.bonus}}</div>`;
@@ -699,18 +794,16 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
         const reasons = t.reasons.map(r => `<li>${{r}}</li>`).join('');
 
         return `
-          <div class="type-card">
+          <div class="type-card" id="type-card-${{t.type_id}}">
             <div class="type-card-top">
-              <div>
-                <div class="type-badge-row">
-                  <span class="type-chip">유형 ${{t.type_id}}</span>
-                  <span style="font-size:0.75rem; color:var(--text-muted);">${{t.subtitle}}</span>
-                </div>
-                <div class="type-title">${{t.name}}</div>
+              <div class="type-header-left">
+                <span class="type-chip">유형 ${{t.type_id}}</span>
+                <span class="type-title">${{t.name}}</span>
               </div>
               <button class="btn-copy" onclick="copyText('${{copyVal}}', '유형 ${{t.type_id}} 번호 복사 완료! ✓')">복사 📋</button>
             </div>
-
+            
+            <div class="type-desc-sub">${{t.subtitle}}</div>
             <div class="type-concept-box">${{t.concept}}</div>
 
             <div class="ball-wrap">
@@ -719,11 +812,11 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
             </div>
 
             <div class="metrics-grid">
-              <div class="metric-tag">총합: <strong>${{m.sum}}</strong></div>
-              <div class="metric-tag">홀:짝: <strong>${{m.odd_even}}</strong></div>
-              <div class="metric-tag">저:고: <strong>${{m.high_low}}</strong></div>
-              <div class="metric-tag">AC: <strong>${{m.ac_value}}</strong></div>
-              <div class="metric-tag">연번: <strong>${{m.consecutive}}쌍</strong></div>
+              <div class="metric-tag">총합 <strong>${{m.sum}}</strong></div>
+              <div class="metric-tag">홀:짝 <strong>${{m.odd_even}}</strong></div>
+              <div class="metric-tag">저:고 <strong>${{m.high_low}}</strong></div>
+              <div class="metric-tag">AC <strong>${{m.ac_value}}</strong></div>
+              <div class="metric-tag">연번 <strong>${{m.consecutive}}쌍</strong></div>
             </div>
 
             <details class="reasons-details">
