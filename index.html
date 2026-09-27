@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>로또 6/45 제 1244회 5대 유형 추천기 (모바일 최적화)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #0b1120;
+      --card-bg: #1e293b;
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-inner: rgba(15, 23, 42, 0.6);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.25);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      
+      --ball-size: clamp(38px, 10.5vw, 48px);
+      --ball-font: clamp(1rem, 3vw, 1.25rem);
+      --mini-ball-size: 28px;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: radial-gradient(circle at 50% 0%, #1e293b 0%, #0b1120 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 16px 12px 100px 12px;
+      line-height: 1.45;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    /* 상단 헤더 */
+    header {
+      text-align: center;
+      padding: 12px 4px 18px 4px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 12px;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    h1 {
+      font-size: clamp(1.5rem, 5.2vw, 2.1rem);
+      font-weight: 900;
+      letter-spacing: -0.6px;
+      margin-bottom: 6px;
+      line-height: 1.25;
+      background: linear-gradient(135deg, #ffffff 40%, #38bdf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .subhead {
+      color: var(--text-muted);
+      font-size: clamp(0.82rem, 2.6vw, 0.95rem);
+      word-break: keep-all;
+    }
+
+    /* 상단 요약 그리드 (모바일 2x2 반응형) */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .summary-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+    }
+    .summary-card.full-width {
+      grid-column: span 2;
+    }
+    .summary-card .label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .summary-card .value {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #fff;
+    }
+    .summary-card .sub-value {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* 상단 액션 버튼 (모바일 최적화 그리드) */
+    .action-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 22px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s ease;
+      touch-action: manipulation;
+    }
+    .btn:active {
+      transform: scale(0.97);
+    }
+    .btn-primary {
+      grid-column: span 2;
+      background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
+      color: #ffffff;
+      padding: 14px;
+      font-size: 0.98rem;
+      box-shadow: 0 4px 16px rgba(56, 189, 248, 0.35);
+    }
+    .btn-secondary {
+      background: #1e293b;
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #f1f5f9;
+      font-size: 0.82rem;
+      padding: 10px;
+    }
+
+    /* 섹션 타이틀 */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 24px 4px 12px 4px;
+    }
+    .section-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #fff;
+    }
+    .section-tag {
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+      border-radius: 6px;
+      font-weight: 700;
+    }
+
+    /* 번호 볼 공통 (모바일 1줄 밀착 배치) */
+    .ball-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(4px, 1.4vw, 8px);
+      padding: 14px 6px;
+      margin: 10px 0;
+      background: var(--card-inner);
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.04);
+    }
+    .ball {
+      width: var(--ball-size);
+      height: var(--ball-size);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: var(--ball-font);
+      color: #ffffff;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+      box-shadow: inset 0 -3px 5px rgba(0,0,0,0.35), 0 3px 8px rgba(0,0,0,0.3);
+      position: relative;
+      flex-shrink: 0;
+    }
+    .ball::after {
+      content: '';
+      position: absolute;
+      top: 4px;
+      left: 8px;
+      width: 10px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.45);
+      transform: rotate(-20deg);
+    }
+    .ball-yellow { background: radial-gradient(circle at 35% 35%, #fbbf24, #b45309); }
+    .ball-blue   { background: radial-gradient(circle at 35% 35%, #60a5fa, #1d4ed8); }
+    .ball-red    { background: radial-gradient(circle at 35% 35%, #f87171, #b91c1c); }
+    .ball-gray   { background: radial-gradient(circle at 35% 35%, #94a3b8, #334155); }
+    .ball-green  { background: radial-gradient(circle at 35% 35%, #34d399, #047857); }
+    .ball-bonus  {
+      outline: 2px dashed #f59e0b;
+      outline-offset: 2px;
+    }
+    .mini-ball {
+      width: var(--mini-ball-size);
+      height: var(--mini-ball-size);
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: #fff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      flex-shrink: 0;
+    }
+    .plus-divider {
+      font-size: 1rem;
+      font-weight: 900;
+      color: var(--text-muted);
+      opacity: 0.7;
+    }
+
+    /* 5대 유형 카드 (모바일 최적화) */
+    .type-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      padding: 16px 14px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+      position: relative;
+    }
+    .type-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .type-badge-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 2px;
+    }
+    .type-chip {
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+    }
+    .type-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.3;
+    }
+    .type-desc-sub {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+      word-break: keep-all;
+    }
+    .btn-copy {
+      background: #334155;
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #f1f5f9;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      flex-shrink: 0;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+    .btn-copy:active {
+      background: var(--accent);
+      color: #0b1120;
+    }
+    .type-concept-box {
+      font-size: 0.8rem;
+      color: #cbd5e1;
+      line-height: 1.5;
+      margin: 10px 0;
+      padding: 9px 12px;
+      border-radius: 10px;
+      background: rgba(0,0,0,0.25);
+      border-left: 3px solid var(--accent);
+      word-break: keep-all;
+    }
+
+    /* 지표 칩 리스트 */
+    .metrics-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .metric-tag {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.06);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .metric-tag strong {
+      color: #f8fafc;
+      font-weight: 700;
+    }
+
+    /* 상세 사유 아코디언 */
+    .reasons-details {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .reasons-details summary {
+      font-size: 0.75rem;
+      color: var(--accent);
+      cursor: pointer;
+      font-weight: 600;
+      user-select: none;
+      outline: none;
+    }
+    .reasons-ul {
+      margin-top: 6px;
+      padding-left: 16px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* 통계 랭킹 섹션 (모바일 바 그래프 디자인) */
+    .stats-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      padding: 16px 14px;
+      margin-bottom: 14px;
+    }
+    .stats-card h3 {
+      font-size: 0.95rem;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .rank-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .rank-bar-bg {
+      flex: 1;
+      height: 8px;
+      background: rgba(255,255,255,0.07);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .rank-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.5s ease;
+    }
+    .rank-count {
+      font-size: 0.75rem;
+      font-weight: 700;
+      min-width: 45px;
+      text-align: right;
+    }
+
+    /* 하단 모바일 고정 빠른 바 (Floating Bottom Bar) */
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding: 10px 16px;
+      display: flex;
+      gap: 10px;
+      z-index: 100;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+    .bottom-bar .btn {
+      flex: 1;
+      padding: 12px;
+      font-size: 0.9rem;
+    }
+
+    /* 모바일 토스트 */
+    .toast {
+      position: fixed;
+      top: 24px;
+      left: 50%;
+      transform: translate(-50%, -100px);
+      background: #10b981;
+      color: #ffffff;
+      padding: 10px 20px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      opacity: 0;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 999;
+      white-space: nowrap;
+    }
+    .toast.show {
+      transform: translate(-50%, 0);
+      opacity: 1;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 24px;
+      padding-top: 16px;
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge">동행복권 1회~1243회 빅데이터 분석</div>
+      <h1>로또 제 1244회 5대 유형</h1>
+      <p class="subhead">빅데이터 수리 통계 모델 기반 당첨 확률 최적화 번호</p>
+    </header>
+
+    <!-- 요약 통계 2x2 카드 -->
+    <div class="summary-grid">
+      <div class="summary-card full-width">
+        <div class="label">최근 당첨 결과 (제 1243회)</div>
+        <div style="display: flex; align-items: center; justify-content: flex-start; gap: 5px; margin-top: 4px;">
+          <div class="mini-ball ball-yellow">9</div><div class="mini-ball ball-blue">18</div><div class="mini-ball ball-red">24</div><div class="mini-ball ball-gray">38</div><div class="mini-ball ball-green">43</div><div class="mini-ball ball-green">44</div>
+          <span style="font-size: 0.8rem; color: var(--text-muted); margin: 0 1px;">+</span>
+          <div class="mini-ball ball-gray ball-bonus">35</div>
+        </div>
+      </div>
+      <div class="summary-card">
+        <div class="label">역대 평균 총합</div>
+        <div class="value">138.3</div>
+        <div class="sub-value">최빈구간 120~160</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">역대 평균 AC값</div>
+        <div class="value">8.0</div>
+        <div class="sub-value">산포도 7 이상 (90%)</div>
+      </div>
+    </div>
+
+    <!-- 모바일 컨트롤 액션 버튼 -->
+    <div class="action-grid">
+      <button class="btn btn-primary" onclick="reGenerateAll()">
+        <span>🔄 5가지 유형 다시 추첨하기</span>
+      </button>
+      <button class="btn btn-secondary" onclick="copyAllSets()">
+        <span>📋 전체 복사</span>
+      </button>
+      <button class="btn btn-secondary" onclick="syncWithServer()">
+        <span>🌐 최신 동기화</span>
+      </button>
+    </div>
+
+    <!-- 5대 추천 유형 섹션 -->
+    <div class="section-header">
+      <div class="section-title">
+        <span>🎯 5대 핵심 추천 유형</span>
+      </div>
+      <span class="section-tag">제 1244회차 대비</span>
+    </div>
+
+    <div id="types-container"></div>
+
+    <!-- 핵심 통계 순위표 -->
+    <div class="section-header">
+      <div class="section-title">
+        <span>📊 1회~1243회 통계 순위</span>
+      </div>
+    </div>
+
+    <div class="stats-card">
+      <h3>🔥 역대 최다 빈출 TOP 10</h3>
+      <div id="hot-ranks"></div>
+    </div>
+
+    <div class="stats-card">
+      <h3>❄️ 최장기 미출현 TOP 10</h3>
+      <div id="cold-ranks"></div>
+    </div>
+
+    <footer>
+      <p>동행복권(dhlottery.co.kr) 실제 1회부터 1243회까지의 공식 당첨 통계 기준</p>
+      <p style="margin-top: 4px;">행운을 빕니다! 🍀</p>
+    </footer>
+  </div>
+
+  <!-- 하단 고정 퀵 액션 바 (스마트폰 엄지 터치 최적화) -->
+  <div class="bottom-bar">
+    <button class="btn btn-primary" onclick="reGenerateAll()">
+      <span>🔄 원클릭 재추첨</span>
+    </button>
+    <button class="btn btn-secondary" style="flex: 0 0 auto; padding: 12px 18px;" onclick="copyAllSets()">
+      <span>📋 전체복사</span>
+    </button>
+  </div>
+
+  <div id="toast" class="toast">알림</div>
+
+  <script>
+    const INITIAL_TYPES = [{"type_id": 1, "name": "고빈도 모멘텀형 (Hot Momentum)", "subtitle": "최근 10~30회차 다출현 및 역대 상위 빈출 번호 중심", "concept": "출현 모멘텀이 강하게 살아있는 번호들을 중심으로 구성한 추세 추종형 조합입니다. 최근 10회 및 30회 내 빈출도와 역대 누적 출현율을 가중 합산하여 상위 핫(Hot) 번호를 선별했습니다.", "numbers": [13, 15, 18, 19, 31, 44], "bonus": 43, "metrics": {"sum": 140, "odd_even": "4:2", "high_low": "4:2", "ac_value": 9, "consecutive": 1}, "reasons": ["13번 (누적 183회, 최근30회 중 9회)", "15번 (누적 170회, 최근30회 중 8회)", "18번 (누적 179회, 최근30회 중 7회)", "19번 (누적 171회, 최근30회 중 6회)", "31번 (누적 171회, 최근30회 중 7회)", "44번 (누적 166회, 최근30회 중 6회)"]}, {"type_id": 2, "name": "미출현 주기 반등형 (Cold & Mean Reversion)", "subtitle": "평균 출현 주기를 초과한 장기 미출현 번호 및 직전 이월수 조합", "concept": "통계적 평균 회귀(Mean Reversion) 법칙에 기반하여, 고유 평균 주기를 넘겨 출현이 임박한 장기 미출현 번호와 직전 회차 당첨 번호(이월수) 1개를 조화롭게 결합한 반등 노림수 조합입니다.", "numbers": [3, 5, 26, 27, 38, 45], "bonus": 17, "metrics": {"sum": 144, "odd_even": "4:2", "high_low": "2:4", "ac_value": 10, "consecutive": 1}, "reasons": ["3번 (13회 연속 미출현, 평균주기 7.11회 대비 1.83배 경과)", "5번 (30회 연속 미출현, 평균주기 7.84회 대비 3.83배 경과)", "26번 (17회 연속 미출현, 평균주기 7.44회 대비 2.29배 경과)", "27번 (19회 연속 미출현, 평균주기 6.78회 대비 2.8배 경과)", "38번 (직전 회차 1243회 당첨 이월수)", "45번 (19회 연속 미출현, 평균주기 6.97회 대비 2.73배 경과)"]}, {"type_id": 3, "name": "황금 균형 통계형 (Golden Balance & Normal Distribution)", "subtitle": "역대 1등 80% 이상이 포함된 홀짝 3:3, 고저 3:3, 총합 130~150 완벽 균형", "concept": "역대 1등 당첨 데이터의 80% 이상이 수렴하는 정규분포 황금 비율을 완벽히 맞춘 조합입니다. 홀수 3개, 짝수 3개 / 저번호 3개, 고번호 3개 / 총합은 로또 역대 평균치인 138 전후에 정밀 수렴합니다.", "numbers": [8, 9, 17, 30, 32, 41], "bonus": 2, "metrics": {"sum": 137, "odd_even": "3:3", "high_low": "3:3", "ac_value": 8, "consecutive": 1}, "reasons": ["8번 (구간: 1~10, 홀짝/고저 황금 밸런스 매칭)", "9번 (구간: 1~10, 홀짝/고저 황금 밸런스 매칭)", "17번 (구간: 11~20, 홀짝/고저 황금 밸런스 매칭)", "30번 (구간: 21~30, 홀짝/고저 황금 밸런스 매칭)", "32번 (구간: 31~40, 홀짝/고저 황금 밸런스 매칭)", "41번 (구간: 41~45, 홀짝/고저 황금 밸런스 매칭)"]}, {"type_id": 4, "name": "연번 & 동끝수 실전 패턴형 (Consecutive & End-Digit)", "subtitle": "실제 1등 당첨의 60% 이상인 연번(1쌍)과 70% 이상인 동끝수(1쌍) 반영", "concept": "역대 로또 당첨 번호의 강력한 실전 특징인 '연속된 2개 번호(연번)'와 '끝자리가 같은 2개 번호(동끝수)'를 정확히 1쌍씩 배치하여, 기계적 무작위가 아닌 실제 당첨 패턴의 생생한 상관관계를 재현한 조합입니다.", "numbers": [11, 13, 30, 36, 37, 43], "bonus": 1, "metrics": {"sum": 170, "odd_even": "4:2", "high_low": "2:4", "ac_value": 8, "consecutive": 1}, "reasons": ["11번 (동끝수/밸런스 번호)", "13번 (동끝수/밸런스 번호)", "30번 (동끝수/밸런스 번호)", "36번 (연속번호)", "37번 (연속번호)", "43번 (동끝수/밸런스 번호)"]}, {"type_id": 5, "name": "AI 동반출현 & 복잡도 최적화형 (AI Synergy & AC Optimization)", "subtitle": "45x45 궁합수 매트릭스와 산포도(AC 7~10) 수리 통계 최적화", "concept": "역대 회차에서 함께 당첨된 번호 쌍의 동반 출현(궁합수) 빈도 행렬을 분석하여, 번호 상호 간의 당첨 시너지 점수가 가장 높고 산포 복잡도(AC값)가 7~10 사이로 최적화된 하이브리드 조합입니다.", "numbers": [13, 18, 24, 31, 34, 45], "bonus": 15, "metrics": {"sum": 165, "odd_even": "3:3", "high_low": "2:4", "ac_value": 8, "consecutive": 0}, "reasons": ["13번 (베이지안 기대치 상위, 타 번호와의 동반 출현 궁합 점수 극대화)", "18번 (베이지안 기대치 상위, 타 번호와의 동반 출현 궁합 점수 극대화)", "24번 (베이지안 기대치 상위, 타 번호와의 동반 출현 궁합 점수 극대화)", "31번 (베이지안 기대치 상위, 타 번호와의 동반 출현 궁합 점수 극대화)", "34번 (베이지안 기대치 상위, 타 번호와의 동반 출현 궁합 점수 극대화)", "45번 (베이지안 기대치 상위, 타 번호와의 동반 출현 궁합 점수 극대화)"]}];
+    const STATS = {"total_rounds": 1243, "latest_round": 1243, "next_round": 1244, "avg_sum": 138.3, "avg_ac": 8.0, "top_10_hot": [{"number": 34, "count": 186}, {"number": 13, "count": 183}, {"number": 27, "count": 181}, {"number": 12, "count": 180}, {"number": 18, "count": 179}, {"number": 33, "count": 175}, {"number": 45, "count": 175}, {"number": 37, "count": 174}, {"number": 40, "count": 174}, {"number": 38, "count": 173}], "top_10_cold": [{"number": 5, "omission": 30}, {"number": 27, "omission": 19}, {"number": 45, "omission": 19}, {"number": 17, "omission": 17}, {"number": 26, "omission": 17}, {"number": 30, "omission": 15}, {"number": 3, "omission": 13}, {"number": 8, "omission": 13}, {"number": 28, "omission": 13}, {"number": 14, "omission": 12}], "odd_even_ratios": {"3:3": 414, "4:2": 330, "2:4": 281, "5:1": 99, "1:5": 83}, "high_low_ratios": {"3:3": 410, "2:4": 311, "4:2": 282, "1:5": 113, "5:1": 94}};
+    const LAST_ITEM = {"round": 1243, "date": "20260926", "numbers": [9, 18, 24, 38, 43, 44], "bonus": 35, "winner_count": 12, "first_prize": 2592525282, "total_sell_amount": 128926419000};
+    const ALL_FREQ = {"10": 163, "23": 149, "29": 156, "33": 175, "37": 174, "40": 174, "9": 137, "13": 183, "21": 167, "25": 153, "32": 146, "42": 158, "11": 168, "16": 170, "19": 171, "27": 181, "31": 171, "14": 172, "30": 158, "24": 168, "41": 151, "15": 170, "26": 165, "2": 157, "8": 158, "34": 186, "39": 168, "4": 163, "17": 171, "36": 165, "44": 166, "1": 170, "7": 171, "45": 175, "22": 146, "38": 173, "6": 166, "12": 180, "3": 172, "35": 163, "43": 167, "18": 179, "20": 172, "5": 153, "28": 157};
+    const RECENT_30 = {"10": 5, "15": 8, "19": 6, "27": 2, "30": 3, "33": 3, "13": 9, "21": 3, "44": 6, "45": 4, "3": 3, "14": 3, "23": 3, "24": 5, "8": 3, "20": 5, "29": 4, "31": 7, "28": 6, "32": 5, "42": 5, "1": 3, "2": 5, "39": 3, "22": 5, "25": 3, "34": 5, "43": 5, "6": 3, "18": 7, "36": 3, "4": 4, "11": 4, "17": 2, "41": 4, "16": 4, "9": 4, "26": 1, "35": 2, "12": 3, "37": 3, "38": 4, "7": 3, "40": 2, "5": 0};
+    const OMISSION = {"1": 9, "2": 1, "3": 13, "4": 1, "5": 30, "6": 8, "7": 2, "8": 13, "9": 0, "10": 1, "11": 3, "12": 7, "13": 2, "14": 12, "15": 8, "16": 1, "17": 17, "18": 0, "19": 3, "20": 3, "21": 7, "22": 4, "23": 2, "24": 0, "25": 10, "26": 17, "27": 19, "28": 13, "29": 7, "30": 15, "31": 1, "32": 4, "33": 4, "34": 6, "35": 9, "36": 4, "37": 6, "38": 0, "39": 8, "40": 6, "41": 1, "42": 5, "43": 0, "44": 0, "45": 19};
+    const AVG_INTERVAL = {"1": 7.24, "2": 7.92, "3": 7.11, "4": 7.61, "5": 7.84, "6": 7.4, "7": 7.24, "8": 7.78, "9": 9.12, "10": 7.66, "11": 7.41, "12": 6.83, "13": 6.81, "14": 7.18, "15": 7.27, "16": 7.33, "17": 7.16, "18": 6.87, "19": 7.28, "20": 7.13, "21": 7.43, "22": 8.46, "23": 8.38, "24": 7.41, "25": 8.1, "26": 7.44, "27": 6.78, "28": 7.71, "29": 7.97, "30": 7.8, "31": 7.29, "32": 8.53, "33": 7.11, "34": 6.64, "35": 7.51, "36": 7.5, "37": 7.14, "38": 7.15, "39": 7.35, "40": 7.14, "41": 8.25, "42": 7.87, "43": 7.37, "44": 7.47, "45": 6.97};
+    const MAX_HOT = 186;
+    const MAX_COLD = 30;
+
+    let currentTypes = [...INITIAL_TYPES];
+
+    function getBallClass(num) {
+      if (num >= 1 && num <= 10) return 'yellow';
+      if (num >= 11 && num <= 20) return 'blue';
+      if (num >= 21 && num <= 30) return 'red';
+      if (num >= 31 && num <= 40) return 'gray';
+      return 'green';
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    function copyText(text, msg = '복사 완료! ✓') {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => showToast(msg));
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast(msg);
+      }
+    }
+
+    function copyAllSets() {
+      const text = currentTypes.map(t => 
+        `[유형 ${t.type_id}: ${t.name}] ${t.numbers.map(n => String(n).padStart(2, '0')).join(' ')} (보너스: ${t.bonus})`
+      ).join('\n');
+      copyText(text, '5개 세트 전체 복사 완료! 📋');
+    }
+
+    function renderTypes() {
+      const container = document.getElementById('types-container');
+      container.innerHTML = currentTypes.map(t => {
+        const m = t.metrics;
+        const balls = t.numbers.map(n => `<div class="ball ball-${getBallClass(n)}">${n}</div>`).join('');
+        const bonus = `<span class="plus-divider">+</span><div class="ball ball-${getBallClass(t.bonus)} ball-bonus" title="보너스">${t.bonus}</div>`;
+        const copyVal = t.numbers.join(', ');
+        const reasons = t.reasons.map(r => `<li>${r}</li>`).join('');
+
+        return `
+          <div class="type-card">
+            <div class="type-card-top">
+              <div>
+                <div class="type-badge-row">
+                  <span class="type-chip">유형 ${t.type_id}</span>
+                  <span style="font-size:0.75rem; color:var(--text-muted);">${t.subtitle}</span>
+                </div>
+                <div class="type-title">${t.name}</div>
+              </div>
+              <button class="btn-copy" onclick="copyText('${copyVal}', '유형 ${t.type_id} 번호 복사 완료! ✓')">복사 📋</button>
+            </div>
+
+            <div class="type-concept-box">${t.concept}</div>
+
+            <div class="ball-wrap">
+              ${balls}
+              ${bonus}
+            </div>
+
+            <div class="metrics-grid">
+              <div class="metric-tag">총합: <strong>${m.sum}</strong></div>
+              <div class="metric-tag">홀:짝: <strong>${m.odd_even}</strong></div>
+              <div class="metric-tag">저:고: <strong>${m.high_low}</strong></div>
+              <div class="metric-tag">AC: <strong>${m.ac_value}</strong></div>
+              <div class="metric-tag">연번: <strong>${m.consecutive}쌍</strong></div>
+            </div>
+
+            <details class="reasons-details">
+              <summary>선정 사유 및 통계 보기 ▸</summary>
+              <ul class="reasons-ul">
+                ${reasons}
+              </ul>
+            </details>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderStatsRanks() {
+      const hotBox = document.getElementById('hot-ranks');
+      hotBox.innerHTML = STATS.top_10_hot.map(item => {
+        const pct = Math.round((item.count / MAX_HOT) * 100);
+        return `
+          <div class="rank-item">
+            <span class="mini-ball ball-${getBallClass(item.number)}">${item.number}</span>
+            <div class="rank-bar-bg">
+              <div class="rank-bar-fill" style="width: ${pct}%; background: linear-gradient(90deg, #38bdf8, #2563eb);"></div>
+            </div>
+            <span class="rank-count" style="color: #38bdf8;">${item.count}회</span>
+          </div>
+        `;
+      }).join('');
+
+      const coldBox = document.getElementById('cold-ranks');
+      coldBox.innerHTML = STATS.top_10_cold.map(item => {
+        const pct = Math.round((item.omission / MAX_COLD) * 100);
+        return `
+          <div class="rank-item">
+            <span class="mini-ball ball-${getBallClass(item.number)}">${item.number}</span>
+            <div class="rank-bar-bg">
+              <div class="rank-bar-fill" style="width: ${pct}%; background: linear-gradient(90deg, #f87171, #ef4444);"></div>
+            </div>
+            <span class="rank-count" style="color: #f87171;">${item.omission}주</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function reGenerateAll() {
+      showToast('새로운 확률 조합을 추출하는 중...');
+      try {
+        const resp = await fetch('/api/generate', { cache: 'no-store' });
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.types) {
+            currentTypes = data.types;
+            renderTypes();
+            showToast('5가지 유형이 새로 추첨되었습니다! 🎯');
+            return;
+          }
+        }
+      } catch (e) {}
+
+      clientSideReGenerate();
+      renderTypes();
+      showToast('5가지 유형이 새로 추첨되었습니다! 🎯');
+    }
+
+    function sampleN(arr, n) {
+      const shuffled = [...arr].sort(() => 0.5 - Math.random());
+      return shuffled.slice(0, n);
+    }
+
+    function sampleCombo(pool) {
+      for (let i = 0; i < 200; i++) {
+        const c = sampleN(pool, 6).sort((a,b) => a - b);
+        const sum = c.reduce((a,b) => a+b, 0);
+        const odd = c.filter(x => x%2===1).length;
+        if (sum >= 115 && sum <= 165 && (odd >= 2 && odd <= 4)) return c;
+      }
+      return sampleN(pool, 6).sort((a,b) => a - b);
+    }
+
+    function calcAC(nums) {
+      const diffs = new Set();
+      for (let i = 0; i < nums.length; i++) {
+        for (let j = i + 1; j < nums.length; j++) {
+          diffs.add(Math.abs(nums[j] - nums[i]));
+        }
+      }
+      return diffs.size - (nums.length - 1);
+    }
+
+    function countConsec(nums) {
+      let c = 0;
+      for (let i = 0; i < nums.length - 1; i++) {
+        if (nums[i+1] - nums[i] === 1) c++;
+      }
+      return c;
+    }
+
+    function updateMetrics(typeObj) {
+      const nums = typeObj.numbers;
+      const sum = nums.reduce((a,b) => a+b, 0);
+      const odd = nums.filter(x => x % 2 === 1).length;
+      const low = nums.filter(x => x <= 22).length;
+      typeObj.metrics = {
+        sum: sum,
+        odd_even: `${odd}:${6-odd}`,
+        high_low: `${low}:${6-low}`,
+        ac_value: calcAC(nums),
+        consecutive: countConsec(nums)
+      };
+    }
+
+    function clientSideReGenerate() {
+      // Type 1: Hot
+      const hotNums = Object.keys(RECENT_30).sort((a,b) => RECENT_30[b] - RECENT_30[a]).slice(0, 18).map(Number);
+      currentTypes[0].numbers = sampleCombo(hotNums);
+      updateMetrics(currentTypes[0]);
+
+      // Type 2: Cold
+      const lastNums = LAST_ITEM.numbers;
+      const coldNums = Object.keys(OMISSION).sort((a,b) => (OMISSION[b]/AVG_INTERVAL[b]) - (OMISSION[a]/AVG_INTERVAL[a])).slice(0, 14).map(Number);
+      const carry = [lastNums[Math.floor(Math.random() * lastNums.length)]];
+      const otherColds = sampleN(coldNums.filter(n => !carry.includes(n)), 5);
+      currentTypes[1].numbers = [...carry, ...otherColds].sort((a,b) => a - b);
+      updateMetrics(currentTypes[1]);
+
+      // Type 3: Golden
+      const s1 = [1,2,3,4,5,6,7,8,9,10];
+      const s2 = [11,12,13,14,15,16,17,18,19,20];
+      const s3 = [21,22,23,24,25,26,27,28,29,30];
+      const s4 = [31,32,33,34,35,36,37,38,39,40];
+      const s5 = [41,42,43,44,45];
+      for (let i = 0; i < 300; i++) {
+        const c = [
+          s1[Math.floor(Math.random() * s1.length)],
+          s2[Math.floor(Math.random() * s2.length)],
+          s3[Math.floor(Math.random() * s3.length)],
+          s4[Math.floor(Math.random() * s4.length)],
+          s5[Math.floor(Math.random() * s5.length)],
+          s2[Math.floor(Math.random() * s2.length)]
+        ];
+        const uniq = [...new Set(c)].sort((a,b) => a - b);
+        if (uniq.length === 6) {
+          const sum = uniq.reduce((a,b) => a+b, 0);
+          const odd = uniq.filter(x => x%2===1).length;
+          if (sum >= 125 && sum <= 155 && odd === 3) {
+            currentTypes[2].numbers = uniq;
+            break;
+          }
+        }
+      }
+      updateMetrics(currentTypes[2]);
+
+      // Type 4: Consecutive
+      const consecStart = Math.floor(Math.random() * 40) + 1;
+      const consec = [consecStart, consecStart + 1];
+      const remain = sampleN(Array.from({length:45}, (_,i)=>i+1).filter(x => !consec.includes(x)), 4);
+      currentTypes[3].numbers = [...consec, ...remain].sort((a,b) => a - b);
+      updateMetrics(currentTypes[3]);
+
+      // Type 5: Hybrid
+      const pool = Object.keys(ALL_FREQ).sort((a,b) => ALL_FREQ[b] - ALL_FREQ[a]).slice(0, 22).map(Number);
+      currentTypes[4].numbers = sampleCombo(pool);
+      updateMetrics(currentTypes[4]);
+    }
+
+    async function syncWithServer() {
+      try {
+        showToast('동행복권 최신 회차 동기화 중...');
+        const resp = await fetch('/api/sync');
+        if (resp.ok) {
+          const data = await resp.json();
+          showToast(data.message || '동기화 완료!');
+          setTimeout(() => location.reload(), 1200);
+          return;
+        }
+      } catch (e) {
+        showToast('로컬 서버(web_server.py) 실행 중일 때 실시간 동기화가 지원됩니다.');
+      }
+    }
+
+    renderTypes();
+    renderStatsRanks();
+  </script>
+</body>
+</html>
