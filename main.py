@@ -183,6 +183,9 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- 🗺️ Leaflet.js (지도를 위한 오픈소스 라이브러리) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     :root {{
       --bg-color: #0b1120;
@@ -982,6 +985,379 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       100% {{ transform: rotate(360deg); }}
     }}
 
+    /* 🗺️ 지도 & 판매점 추천 섹션 카드 */
+    .map-card {{
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+      border: 1.5px solid rgba(56, 189, 248, 0.35);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      position: relative;
+    }}
+    .map-header {{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }}
+    .map-title {{
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }}
+    .map-pill {{
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 999px;
+      font-weight: 700;
+    }}
+    .fortune-direction-alert {{
+      background: rgba(251, 191, 36, 0.12);
+      border: 1px dashed rgba(251, 191, 36, 0.4);
+      border-radius: 10px;
+      padding: 9px 12px;
+      font-size: 0.82rem;
+      color: #fef3c7;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      line-height: 1.4;
+    }}
+    .direction-badge {{
+      background: #f59e0b;
+      color: #0b1120;
+      font-weight: 900;
+      font-size: 0.7rem;
+      padding: 2px 7px;
+      border-radius: 6px;
+      flex-shrink: 0;
+    }}
+    .map-wrapper {{
+      position: relative;
+      width: 100%;
+      height: 330px;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
+    }}
+    #lottoMap {{
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }}
+    .map-overlay-compass {{
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(251, 191, 36, 0.4);
+      border-radius: 10px;
+      padding: 6px 10px;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #fbbf24;
+      pointer-events: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }}
+    .compass-arrow {{
+      font-size: 1.05rem;
+      color: #f59e0b;
+      display: inline-block;
+      animation: bounceArrow 1.5s infinite alternate;
+    }}
+    @keyframes bounceArrow {{
+      from {{ transform: translate(0, 0); }}
+      to {{ transform: translate(2px, 2px); }}
+    }}
+    .map-btn-row {{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+      margin-bottom: 12px;
+    }}
+    .btn-map-action {{
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: all 0.2s;
+      touch-action: manipulation;
+    }}
+    .btn-map-action:active {{
+      transform: scale(0.97);
+    }}
+    .btn-find-me {{
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #fff;
+      box-shadow: 0 3px 12px rgba(2, 132, 199, 0.35);
+    }}
+    .btn-show-holy {{
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #e2e8f0;
+    }}
+    .location-result-box {{
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }}
+    .loc-status {{
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-align: center;
+      line-height: 1.4;
+    }}
+    .rec-store-grid {{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }}
+    .rec-store-card {{
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }}
+    .rec-store-card.highlight-card {{
+      border: 1.5px solid var(--gold);
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(30, 41, 59, 0.8) 100%);
+    }}
+    .rec-badge {{
+      font-size: 0.68rem;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      align-self: flex-start;
+      margin-bottom: 4px;
+    }}
+    .rec-badge.red {{
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }}
+    .rec-badge.gold {{
+      background: rgba(245, 158, 11, 0.25);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.5);
+    }}
+    .rec-store-name {{
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }}
+    .rec-store-meta {{
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }}
+    .rec-link-btn {{
+      display: block;
+      text-align: center;
+      padding: 6px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-decoration: none;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      transition: background 0.2s;
+    }}
+    .rec-link-btn.gold-btn {{
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: #0b1120;
+      border: none;
+      font-weight: 800;
+    }}
+    .direct-search-box {{
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.1);
+    }}
+    .direct-title {{
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }}
+    .direct-btn-group {{
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }}
+    .btn-direct {{
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      text-decoration: none;
+      transition: all 0.2s;
+      touch-action: manipulation;
+    }}
+    .btn-direct:active {{
+      transform: scale(0.98);
+    }}
+    .btn-kakao {{
+      background: #fee500;
+      color: #191919;
+    }}
+    .btn-naver {{
+      background: #03c75a;
+      color: #ffffff;
+    }}
+    .direct-text-wrap {{
+      flex: 1;
+      text-align: left;
+    }}
+    .direct-main {{
+      font-size: 0.85rem;
+      font-weight: 800;
+      line-height: 1.2;
+    }}
+    .direct-sub {{
+      font-size: 0.68rem;
+      opacity: 0.85;
+      margin-top: 1px;
+    }}
+    .btn-arrow {{
+      font-size: 1.2rem;
+      font-weight: 800;
+      opacity: 0.6;
+    }}
+
+    /* Leaflet 커스텀 다크 팝업 & 마커 */
+    .leaflet-popup-content-wrapper {{
+      background: rgba(15, 23, 42, 0.95) !important;
+      backdrop-filter: blur(10px);
+      color: #f8fafc !important;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 12px !important;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important;
+    }}
+    .leaflet-popup-tip {{
+      background: rgba(15, 23, 42, 0.95) !important;
+    }}
+    .popup-box {{
+      font-family: 'Pretendard', sans-serif;
+      padding: 4px;
+      line-height: 1.4;
+    }}
+    .popup-title {{
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 2px;
+    }}
+    .popup-badge {{
+      font-size: 0.68rem;
+      font-weight: 800;
+      color: #fbbf24;
+      background: rgba(251, 191, 36, 0.15);
+      padding: 1px 6px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-bottom: 6px;
+    }}
+    .popup-addr {{
+      font-size: 0.74rem;
+      color: #94a3b8;
+      margin-bottom: 8px;
+    }}
+    .popup-link {{
+      display: inline-block;
+      width: 100%;
+      text-align: center;
+      padding: 7px;
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #fff !important;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-decoration: none;
+    }}
+
+    /* 내 위치 펄스 마커 */
+    .user-pulse-marker {{
+      width: 22px;
+      height: 22px;
+      background: #0284c7;
+      border: 3px solid #ffffff;
+      border-radius: 50%;
+      box-shadow: 0 0 15px rgba(2, 132, 199, 0.8);
+      position: relative;
+    }}
+    .user-pulse-marker::after {{
+      content: '';
+      position: absolute;
+      top: -9px;
+      left: -9px;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: rgba(56, 189, 248, 0.4);
+      animation: markerPulse 1.8s infinite ease-out;
+    }}
+    @keyframes markerPulse {{
+      0% {{ transform: scale(0.5); opacity: 1; }}
+      100% {{ transform: scale(1.6); opacity: 0; }}
+    }}
+
+    /* 성지 마커 아이콘 */
+    .holy-marker-pin {{
+      width: 30px;
+      height: 30px;
+      background: radial-gradient(circle at 35% 35%, #fbbf24, #b45309);
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+      cursor: pointer;
+    }}
+    .holy-marker-pin.southeast-pin {{
+      background: radial-gradient(circle at 35% 35%, #f59e0b, #b45309);
+      border: 2.5px solid #6ee7b7;
+      box-shadow: 0 0 14px rgba(110, 231, 183, 0.8);
+    }}
+
     footer {{
       text-align: center;
       margin-top: 24px;
@@ -1091,6 +1467,88 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       <div class="lock-sub">추가 추첨은 다음 주 황금 일시에 단 1번만 가능합니다. 🍀</div>
       <div>
         <button class="btn-unlock-secret" onclick="unlockReservationSecret()">[⚠️ 확정 봉인 해제 (초기화)]</button>
+      </div>
+    </div>
+
+    <!-- 🗺️ [현재 위치 기반 로또 판매점 & 추천 명당 지도] -->
+    <div class="map-card" id="mapSection">
+      <div class="map-header">
+        <div class="map-title">
+          <span>🗺️ 내 주변 로또 판매점 & 추천 명당 지도</span>
+        </div>
+        <span class="map-pill">실시간 GPS 연동</span>
+      </div>
+
+      <!-- 추천 방위 안내 칩 -->
+      <div class="fortune-direction-alert">
+        <span class="direction-badge">🧭 금주 천운 추천 방위</span>
+        <span>현재 계신 곳 기준 <strong>동남쪽 (손방 巽方 · 135°)</strong> 방위의 판매점을 추천합니다!</span>
+      </div>
+
+      <!-- 지도 뷰포트 -->
+      <div class="map-wrapper">
+        <div id="lottoMap"></div>
+        <div class="map-overlay-compass">
+          <span class="compass-arrow">↘</span>
+          <span>손방(동남 135°) 레이더 작동</span>
+        </div>
+      </div>
+
+      <!-- 지도 상호작용 버튼 -->
+      <div class="map-btn-row">
+        <button class="btn-map-action btn-find-me" onclick="locateUser(true)">
+          <span>📍 내 현재 위치로 지도 맞추기</span>
+        </button>
+        <button class="btn-map-action btn-show-holy" onclick="showAllHolySpots()">
+          <span>🏆 전국 1등 성지 TOP 16 보기</span>
+        </button>
+      </div>
+
+      <!-- 내 위치 분석 결과 카드 -->
+      <div class="location-result-box" id="locationResultBox">
+        <div class="loc-status" id="locStatusText">
+          <span class="spinner-spin">🔄</span> 현재 위치(GPS)를 확인하는 중입니다...
+        </div>
+
+        <div class="rec-store-grid" id="recStoreGrid" style="display: none;">
+          <!-- 가장 가까운 성지 명당 -->
+          <div class="rec-store-card">
+            <div class="rec-badge red">🏃 가장 가까운 1등 성지</div>
+            <div class="rec-store-name" id="nearestHolyName">-</div>
+            <div class="rec-store-meta" id="nearestHolyMeta">-</div>
+            <a class="rec-link-btn" id="nearestHolyLink" href="#" target="_blank">길찾기 (카카오맵) ↗</a>
+          </div>
+          <!-- 동남쪽 천운 명당 -->
+          <div class="rec-store-card highlight-card">
+            <div class="rec-badge gold">⭐ 동남쪽(손방) 천운 명당</div>
+            <div class="rec-store-name" id="southeastHolyName">-</div>
+            <div class="rec-store-meta" id="southeastHolyMeta">-</div>
+            <a class="rec-link-btn gold-btn" id="southeastHolyLink" href="#" target="_blank">길찾기 (카카오맵) ↗</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ⚡ 원클릭 내 주변 실시간 로또 판매점 즉시 찾기 (카카오맵 & 네이버지도 앱 연동) -->
+      <div class="direct-search-box">
+        <div class="direct-title">⚡ 지금 바로 도보/차량으로 갈 수 있는 판매점 찾기</div>
+        <div class="direct-btn-group">
+          <a class="btn-direct btn-kakao" id="kakaoNearbyBtn" href="https://map.kakao.com/link/search/로또판매점" target="_blank">
+            <span style="font-size: 1.3rem;">💛</span>
+            <div class="direct-text-wrap">
+              <div class="direct-main">카카오맵 내 주변 로또점 (거리순)</div>
+              <div class="direct-sub">현재 위치 반경 100m~500m 실시간 영업점 & 도보 길안내</div>
+            </div>
+            <span class="btn-arrow">›</span>
+          </a>
+          <a class="btn-direct btn-naver" id="naverNearbyBtn" href="https://m.map.naver.com/search2/search.naver?query=로또판매점" target="_blank">
+            <span style="font-size: 1.3rem;">💚</span>
+            <div class="direct-text-wrap">
+              <div class="direct-main">네이버 지도 내 주변 판매점</div>
+              <div class="direct-sub">네이버 플레이스 후기 및 가장 가까운 판매점 찾기</div>
+            </div>
+            <span class="btn-arrow">›</span>
+          </a>
+        </div>
       </div>
     </div>
 
@@ -1823,11 +2281,305 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       }}, 750);
     }}
 
+    // ==========================================
+    // 🗺️ [현재 위치 기반 지도 & 로또 명당 추천 시스템]
+    // ==========================================
+    const HOLY_STORES = [
+      {{ name: '스파', region: '서울 노원구', count: '1등 52회+', addr: '서울 노원구 동일로 1493 상계주공10단지종합상가', lat: 37.6542, lng: 127.0601 }},
+      {{ name: '부일카서비스', region: '부산 동구', count: '1등 45회+', addr: '부산 동구 자성로133번길 35', lat: 35.1384, lng: 129.0632 }},
+      {{ name: '일등복권편의점', region: '대구 달서구', count: '1등 32회+', addr: '대구 달서구 대명천로 220', lat: 35.8452, lng: 128.5323 }},
+      {{ name: '로또휴게실', region: '경기 용인시', count: '1등 26회+', addr: '경기 용인시 기흥구 용구대로 1885', lat: 37.2563, lng: 127.1084 }},
+      {{ name: '로또명당인주점', region: '충남 아산시', count: '1등 22회+', addr: '충남 아산시 인주일로 85', lat: 36.9015, lng: 126.9082 }},
+      {{ name: '잠실매점', region: '서울 송파구', count: '1등 20회+', addr: '서울 송파구 올림픽로 269 잠실역 8번출구 앞', lat: 37.5142, lng: 127.1002 }},
+      {{ name: '알리바이', region: '광주 광산구', count: '1등 20회+', addr: '광주 광산구 수완로 11번길 3', lat: 35.1912, lng: 126.8223 }},
+      {{ name: '세진전자통신', region: '대구 서구', count: '1등 19회+', addr: '대구 서구 서대구로 156', lat: 35.8672, lng: 128.5583 }},
+      {{ name: '록앤락복권방', region: '전남 목포시', count: '1등 18회+', addr: '전남 목포시 영산로 525', lat: 34.8231, lng: 126.4172 }},
+      {{ name: '행운복권방 보령점', region: '충남 보령시', count: '1등 17회+', addr: '충남 보령시 대천로 46', lat: 36.3312, lng: 126.6021 }},
+      {{ name: '대박찬스', region: '충북 청주시', count: '1등 16회+', addr: '충북 청주시 흥덕구 가경로 161', lat: 36.6214, lng: 127.4332 }},
+      {{ name: '제이복권방', region: '서울 종로구', count: '1등 15회+', addr: '서울 종로구 종로 225-1', lat: 37.5711, lng: 127.0102 }},
+      {{ name: '행운을주는로또', region: '경기 안산시', count: '1등 15회+', addr: '경기 안산시 단원구 광덕4로 112', lat: 37.3092, lng: 126.8331 }},
+      {{ name: '복권천국', region: '인천 부평구', count: '1등 14회+', addr: '인천 부평구 부평문화로 45', lat: 37.4931, lng: 126.7242 }},
+      {{ name: '명당복권방', region: '강원 원주시', count: '1등 13회+', addr: '강원 원주시 남원로 608', lat: 37.3371, lng: 127.9472 }},
+      {{ name: 'CU제주삼화점', region: '제주 제주시', count: '제주 1등 최다', addr: '제주 제주시 화삼로 15', lat: 33.5182, lng: 126.5771 }}
+    ];
+
+    let lottoMap = null;
+    let userMarker = null;
+    let userCircle = null;
+    let radarPolygon = null;
+    let holyMarkers = [];
+    let currentCoords = null;
+
+    function toRad(deg) {{ return (deg * Math.PI) / 180; }}
+    function toDeg(rad) {{ return (rad * 180) / Math.PI; }}
+
+    function getDistanceKm(lat1, lon1, lat2, lon2) {{
+      const R = 6371; // km
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return Math.round(R * c * 10) / 10;
+    }}
+
+    function getBearing(lat1, lon1, lat2, lon2) {{
+      const dLon = toRad(lon2 - lon1);
+      const y = Math.sin(dLon) * Math.cos(toRad(lat2));
+      const x = Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) -
+                Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(dLon);
+      let brng = toDeg(Math.atan2(y, x));
+      return Math.round((brng + 360) % 360);
+    }}
+
+    function getBearingDirection(brng) {{
+      if (brng >= 337.5 || brng < 22.5) return '북쪽';
+      if (brng >= 22.5 && brng < 67.5) return '북동쪽';
+      if (brng >= 67.5 && brng < 112.5) return '동쪽';
+      if (brng >= 112.5 && brng < 157.5) return '동남쪽 (손방 巽方 ⭐)';
+      if (brng >= 157.5 && brng < 202.5) return '남쪽';
+      if (brng >= 202.5 && brng < 247.5) return '남서쪽';
+      if (brng >= 247.5 && brng < 292.5) return '서쪽';
+      return '서북쪽';
+    }}
+
+    function createRadarSector(lat, lng, radiusKm, startAngle, endAngle) {{
+      const points = [[lat, lng]];
+      const R = 6371;
+      for (let a = startAngle; a <= endAngle; a += 2) {{
+        const rad = toRad(a);
+        const dByR = radiusKm / R;
+        const latRad = toRad(lat);
+        const lngRad = toRad(lng);
+        const destLat = Math.asin(Math.sin(latRad) * Math.cos(dByR) + Math.cos(latRad) * Math.sin(dByR) * Math.cos(rad));
+        const destLng = lngRad + Math.atan2(Math.sin(rad) * Math.sin(dByR) * Math.cos(latRad), Math.cos(dByR) - Math.sin(latRad) * Math.sin(destLat));
+        points.push([toDeg(destLat), toDeg(destLng)]);
+      }}
+      points.push([lat, lng]);
+      return points;
+    }}
+
+    function initLottoMap() {{
+      if (!window.L) {{
+        console.warn('Leaflet 라이브러리가 로드되지 않았습니다.');
+        return;
+      }}
+
+      // 기본 지도 초기화 (서울 중심)
+      lottoMap = L.map('lottoMap', {{
+        scrollWheelZoom: false,
+        touchZoom: true,
+        tap: false
+      }}).setView([37.5665, 126.9780], 12);
+
+      L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png', {{
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+      }}).addTo(lottoMap);
+
+      // 16대 전국 1등 성지 마커 추가
+      HOLY_STORES.forEach((item) => {{
+        const holyPin = L.divIcon({{
+          className: 'custom-holy-pin',
+          html: '<div class="holy-marker-pin" id="holy-pin-' + encodeURIComponent(item.name) + '">🏆</div>',
+          iconSize: [30, 30],
+          iconAnchor: [15, 15]
+        }});
+
+        const kakaoNaviUrl = 'https://map.kakao.com/link/to/' + encodeURIComponent(item.name + '(로또명당)') + ',' + item.lat + ',' + item.lng;
+        const popupContent = `
+          <div class="popup-box">
+            <div class="popup-title">🏆 ${{item.name}}</div>
+            <div class="popup-badge">${{item.count}} 배출 (${{item.region}})</div>
+            <div class="popup-addr">${{item.addr}}</div>
+            <a class="popup-link" href="${{kakaoNaviUrl}}" target="_blank">카카오맵 바로 길찾기 ↗</a>
+          </div>
+        `;
+
+        const m = L.marker([item.lat, item.lng], {{ icon: holyPin }})
+          .addTo(lottoMap)
+          .bindPopup(popupContent);
+        holyMarkers.push({{ store: item, marker: m }});
+      }});
+
+      // 자동으로 사용자 위치 측정 시작
+      locateUser(false);
+    }}
+
+    function locateUser(isUserAction) {{
+      const statusText = document.getElementById('locStatusText');
+      if (statusText) {{
+        statusText.innerHTML = '<span class="spinner-spin">🔄</span> GPS 위성 신호로 현재 위치를 확인 중입니다...';
+      }}
+
+      if (!navigator.geolocation) {{
+        if (statusText) {{
+          statusText.innerHTML = '📍 브라우저에서 위치 정보를 지원하지 않습니다. 아래 버튼으로 카카오맵을 확인하세요.';
+        }}
+        processStoresWithCenter(37.5665, 126.9780, false);
+        return;
+      }}
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {{
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          const accuracy = Math.round(pos.coords.accuracy || 50);
+          currentCoords = {{ lat, lng }};
+
+          onLocationFound(lat, lng, accuracy, isUserAction);
+        }},
+        (err) => {{
+          console.warn('Geolocation failed:', err);
+          if (statusText) {{
+            statusText.innerHTML = '📍 현재 위치(GPS) 권한을 허용하시면 가장 가까운 판매점이 자동 추천됩니다.<br><span style="font-size:0.7rem; color:#94a3b8;">(현재는 전국 16대 1등 성지 지도가 표시 중입니다)</span>';
+          }}
+          processStoresWithCenter(37.5665, 126.9780, false);
+          if (isUserAction) {{
+            showToast('브라우저 설정에서 위치 권한을 허용해주시면 실시간 주변 매장을 추천해 드립니다.');
+          }}
+        }},
+        {{ enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }}
+      );
+    }}
+
+    function onLocationFound(lat, lng, accuracy, isUserAction) {{
+      if (!lottoMap) return;
+
+      // 지도 중심을 내 위치로 이동 (적절한 줌 레벨)
+      lottoMap.setView([lat, lng], 13);
+
+      // 기존 내 위치 마커 & 원 제거
+      if (userMarker) lottoMap.removeLayer(userMarker);
+      if (userCircle) lottoMap.removeLayer(userCircle);
+      if (radarPolygon) lottoMap.removeLayer(radarPolygon);
+
+      // 펄스 마커 & 정확도 반경
+      const userPulseIcon = L.divIcon({{
+        className: 'custom-user-pin',
+        html: '<div class="user-pulse-marker" title="내 현재 위치"></div>',
+        iconSize: [22, 22],
+        iconAnchor: [11, 11]
+      }});
+
+      userMarker = L.marker([lat, lng], {{ icon: userPulseIcon }})
+        .addTo(lottoMap)
+        .bindPopup('<div class="popup-box"><div class="popup-title">📍 내 현재 위치</div><div class="popup-addr">GPS 정확도: ±' + accuracy + 'm</div><div style="font-size:0.75rem; color:#38bdf8; font-weight:700;">금주 천운 방위: 동남쪽(135°)</div></div>');
+
+      userCircle = L.circle([lat, lng], {{
+        radius: Math.min(accuracy, 1000),
+        color: '#38bdf8',
+        weight: 1,
+        fillColor: '#0284c7',
+        fillOpacity: 0.12
+      }}).addTo(lottoMap);
+
+      // 🧭 금주 추천 행운 방위: 동남쪽 (손방 巽方: 112.5° ~ 157.5°, 반경 4km 부채꼴) 레이더 그리기
+      const sectorPoints = createRadarSector(lat, lng, 4.5, 112.5, 157.5);
+      radarPolygon = L.polygon(sectorPoints, {{
+        color: '#fbbf24',
+        weight: 2,
+        fillColor: '#f59e0b',
+        fillOpacity: 0.22,
+        dashArray: '6, 6'
+      }}).addTo(lottoMap);
+
+      // 상태 메시지 업데이트
+      const statusText = document.getElementById('locStatusText');
+      if (statusText) {{
+        statusText.innerHTML = `📍 <strong>현재 위치 감지 완료!</strong> (정확도 ±${{accuracy}}m)<br><span style="color:#fbbf24;">✨ 금주 천운 방위인 동남쪽(손방 135°) 레이더가 활성화되었습니다.</span>`;
+      }}
+
+      // 성지 명당과의 거리 및 방위 계산
+      processStoresWithCenter(lat, lng, true);
+
+      if (isUserAction) {{
+        showToast('내 위치로 지도가 이동되었습니다! 📍');
+      }}
+    }}
+
+    function processStoresWithCenter(centerLat, centerLng, hasRealLocation) {{
+      const calculated = HOLY_STORES.map((s) => {{
+        const dist = getDistanceKm(centerLat, centerLng, s.lat, s.lng);
+        const brng = getBearing(centerLat, centerLng, s.lat, s.lng);
+        const dirName = getBearingDirection(brng);
+        const isSE = (brng >= 90 && brng <= 180);
+        return {{ ...s, distance: dist, bearing: brng, dirName: dirName, isSoutheast: isSE }};
+      }});
+
+      // 거리 오름차순 정렬
+      calculated.sort((a, b) => a.distance - b.distance);
+
+      // 1) 가장 가까운 성지 1위
+      const nearest = calculated[0];
+
+      // 2) 동남쪽(손방) 방위에 있는 성지 중 최적 1위
+      const seStores = calculated.filter(s => s.isSoutheast);
+      const recommendedSE = seStores.length > 0 ? seStores[0] : calculated[0];
+
+      // UI 카드에 반영
+      const recGrid = document.getElementById('recStoreGrid');
+      if (recGrid) recGrid.style.display = 'grid';
+
+      const nearestName = document.getElementById('nearestHolyName');
+      const nearestMeta = document.getElementById('nearestHolyMeta');
+      const nearestLink = document.getElementById('nearestHolyLink');
+
+      if (nearestName && nearest) {{
+        nearestName.innerText = `${{nearest.name}} (${{nearest.region}})`;
+        nearestMeta.innerHTML = hasRealLocation 
+          ? `📍 거리 <strong>${{nearest.distance}}km</strong> | ${{nearest.count}} 당첨<br>방위: ${{nearest.dirName}}`
+          : `🏆 역대 ${{nearest.count}} 배출 명당<br>${{nearest.addr}}`;
+        nearestLink.href = 'https://map.kakao.com/link/to/' + encodeURIComponent(nearest.name + '(로또명당)') + ',' + nearest.lat + ',' + nearest.lng;
+      }}
+
+      const seName = document.getElementById('southeastHolyName');
+      const seMeta = document.getElementById('southeastHolyMeta');
+      const seLink = document.getElementById('southeastHolyLink');
+
+      if (seName && recommendedSE) {{
+        seName.innerText = `${{recommendedSE.name}} (${{recommendedSE.region}})`;
+        seMeta.innerHTML = hasRealLocation
+          ? `🧭 방위각 <strong>${{recommendedSE.bearing}}° (${{recommendedSE.dirName}})</strong><br>거리 ${{recommendedSE.distance}}km | ${{recommendedSE.count}}`
+          : `✨ 동남쪽 방위 명당<br>역대 ${{recommendedSE.count}} 배출`;
+        seLink.href = 'https://map.kakao.com/link/to/' + encodeURIComponent(recommendedSE.name + '(로또명당)') + ',' + recommendedSE.lat + ',' + recommendedSE.lng;
+      }}
+
+      // 동남쪽에 위치한 마커는 지도상에서 특별 하이라이트 뱃지 클래스 추가
+      holyMarkers.forEach(hm => {{
+        const pinEl = document.getElementById('holy-pin-' + encodeURIComponent(hm.store.name));
+        if (pinEl) {{
+          const isSE = (recommendedSE && hm.store.name === recommendedSE.name);
+          if (isSE) {{
+            pinEl.classList.add('southeast-pin');
+            pinEl.innerHTML = '⭐';
+          }} else {{
+            pinEl.classList.remove('southeast-pin');
+            pinEl.innerHTML = '🏆';
+          }}
+        }}
+      }});
+    }}
+
+    function showAllHolySpots() {{
+      if (!lottoMap || holyMarkers.length === 0) return;
+      const bounds = L.latLngBounds(HOLY_STORES.map(s => [s.lat, s.lng]));
+      if (currentCoords) {{
+        bounds.extend([currentCoords.lat, currentCoords.lng]);
+      }}
+      lottoMap.fitBounds(bounds, {{ padding: [35, 35] }});
+      showToast('전국 16대 1등 성지 지도로 전환되었습니다! 🏆');
+    }}
+
     // 초기화 실행
     checkLockStatus();
     checkAlarmStatus();
     renderTypes();
     renderStatsRanks();
+    setTimeout(() => {{
+      initLottoMap();
+    }}, 200);
   </script>
 </body>
 </html>
