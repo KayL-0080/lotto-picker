@@ -1,0 +1,41 @@
+name: Weekly Lotto Auto Sync
+
+on:
+  schedule:
+    # 매주 토요일 21:00 KST (12:00 UTC) 및 21:30 KST (12:30 UTC), 22:00 KST (13:00 UTC)
+    - cron: '0 12 * * 6'
+    - cron: '30 12 * * 6'
+    - cron: '0 13 * * 6'
+  workflow_dispatch: # 수동 실행 트리거 지원
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run Crawler & Generator
+        run: |
+          python crawler.py
+          python main.py
+
+      - name: Commit and push if changed
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/ index.html
+          if git diff --staged --quiet; then
+            echo "No new lotto rounds found. Everything up to date."
+          else
+            git commit -m "chore(auto-sync): update lotto data to latest round"
+            git push
+          fi

@@ -1377,8 +1377,8 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
 
   <div class="container">
     <header>
-      <div class="badge">동행복권 1회~{latest_round}회 빅데이터 분석</div>
-      <h1>로또 제 {next_round}회 5대 유형</h1>
+      <div class="badge" id="headerBadge">동행복권 1회~{latest_round}회 빅데이터 분석</div>
+      <h1 id="headerTitle">로또 제 {next_round}회 5대 유형</h1>
       <p class="subhead">빅데이터 수리 통계 모델 기반 당첨 확률 최적화 번호</p>
     </header>
 
@@ -1393,7 +1393,7 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
 
       <!-- 추천 1: 황금 추첨 일시 -->
       <div class="timing-box">
-        <div class="timing-label">
+        <div class="timing-label" id="fortuneDrawLabel">
           <span>🎯 제 {next_round}회 5대 유형 추천 추첨 일시</span>
         </div>
         <div class="timing-value">
@@ -1554,7 +1554,7 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
 
     <!-- 요약 통계 2x2 카드 -->
     <div class="summary-grid">
-      <div class="summary-card full-width">
+      <div class="summary-card full-width" id="recentResultBox">
         <div class="label">최근 당첨 결과 (제 {latest_round}회)</div>
         <div style="display: flex; align-items: center; justify-content: flex-start; gap: 5px; margin-top: 4px;">
           {''.join(f'<div class="mini-ball ball-{get_ball_class(n)}">{n}</div>' for n in last_item['numbers'])}
@@ -1582,7 +1582,7 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       <button class="btn btn-secondary" onclick="copyAllSets()">
         <span>📋 전체 복사</span>
       </button>
-      <button class="btn btn-secondary" onclick="syncWithServer()">
+      <button class="btn btn-secondary" onclick="syncWithServer(true)">
         <span>🌐 최신 동기화</span>
       </button>
     </div>
@@ -1592,7 +1592,7 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       <div class="section-title">
         <span>🎯 5대 핵심 추천 유형</span>
       </div>
-      <span class="section-tag">제 {next_round}회차 대비</span>
+      <span class="section-tag" id="sectionTag">제 {next_round}회차 대비</span>
     </div>
 
     <!-- 🔥 [유형 1, 2, 3, 4, 5 한 줄 뱃지 네비게이션 바] -->
@@ -2172,18 +2172,146 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       updateMetrics(currentTypes[4]);
     }}
 
-    async function syncWithServer() {{
+    // ==========================================
+    // 🔄 [동행복권 최신/최종 회차 실시간 자동 동기화 엔진]
+    // ==========================================
+    let latestSyncedRound = Number(LAST_ITEM.round);
+
+    async function fetchLatestLottoData() {{
+      // 1순위: Vercel Serverless Function 또는 로컬 서버 (/api/sync)
       try {{
-        showToast('동행복권 최신 회차 동기화 중...');
-        const resp = await fetch('/api/sync');
+        const resp = await fetch('/api/sync', {{ cache: 'no-store' }});
         if (resp.ok) {{
           const data = await resp.json();
-          showToast(data.message || '동기화 완료!');
-          setTimeout(() => location.reload(), 1200);
-          return;
+          if (data && data.success && data.latest_round) {{
+            return data;
+          }}
         }}
       }} catch (e) {{
-        showToast('로컬 서버(web_server.py) 실행 중일 때 실시간 동기화가 지원됩니다.');
+        console.warn('/api/sync 호출 실패, fallback 모드로 전환:', e);
+      }}
+
+      // 2순위 Fallback: 날짜 기반 예측 & CORS 프록시 조회
+      try {{
+        const firstDrawDate = new Date(Date.UTC(2002, 11, 7, 12, 0, 0));
+        const now = new Date();
+        const diffDays = Math.floor((now.getTime() - firstDrawDate.getTime()) / (1000 * 60 * 60 * 24));
+        const estRound = Math.floor(diffDays / 7) + 1;
+        
+        const targetUrl = 'https://www.dhlottery.co.kr/lt645/selectPstLt645InfoNew.do?srchDir=center&srchLtEpsd=' + estRound;
+        const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(targetUrl);
+        const resp2 = await fetch(proxyUrl);
+        if (resp2.ok) {{
+          const json2 = await resp2.json();
+          if (json2 && json2.data && json2.data.list && json2.data.list.length > 0) {{
+            const list = json2.data.list;
+            const top = list.reduce((m, c) => Number(c.ltEpsd) > Number(m.ltEpsd) ? c : m, list[0]);
+            const r = Number(top.ltEpsd);
+            const nums = [
+              Number(top.tm1WnNo), Number(top.tm2WnNo), Number(top.tm3WnNo),
+              Number(top.tm4WnNo), Number(top.tm5WnNo), Number(top.tm6WnNo)
+            ].sort((a,b)=>a-b);
+            const bns = Number(top.bnsWnNo);
+            return {{
+              success: true,
+              latest_round: r,
+              next_round: r + 1,
+              latest_item: {{
+                round: r,
+                date: top.ltRflYmd,
+                numbers: nums,
+                bonus: bns
+              }}
+            }};
+          }}
+        }}
+      }} catch (e2) {{
+        console.warn('Fallback direct fetch failed:', e2);
+      }}
+
+      return null;
+    }}
+
+    function applyLatestLottoData(data, notifyUser = false) {{
+      if (!data || !data.latest_item) return false;
+
+      const newRound = Number(data.latest_round);
+      const isNewer = newRound > latestSyncedRound;
+      const prevRound = latestSyncedRound;
+      latestSyncedRound = newRound;
+
+      // 1. 최근 당첨 결과 UI 갱신
+      LAST_ITEM = data.latest_item;
+      const recentBox = document.getElementById('recentResultBox');
+      if (recentBox) {{
+        const ballsHtml = data.latest_item.numbers.map(n => `<div class="mini-ball ball-${{getBallClass(n)}}">${{n}}</div>`).join('') +
+          `<span style="font-size: 0.8rem; color: var(--text-muted); margin: 0 1px;">+</span>` +
+          `<div class="mini-ball ball-${{getBallClass(data.latest_item.bonus)}} ball-bonus">${{data.latest_item.bonus}}</div>`;
+        recentBox.innerHTML = `
+          <div class="label" style="display:flex; justify-content:space-between; align-items:center;">
+            <span>최근 당첨 결과 (제 ${{newRound}}회)</span>
+            <span style="font-size:0.68rem; color:#10b981; font-weight:700;">● 실시간 동기화 완료</span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: flex-start; gap: 5px; margin-top: 4px;">
+            ${{ballsHtml}}
+          </div>
+        `;
+      }}
+
+      // 2. 상단 뱃지 및 타이틀 갱신
+      const headerBadge = document.getElementById('headerBadge');
+      if (headerBadge) {{
+        headerBadge.innerText = `동행복권 1회~${{newRound}}회 빅데이터 분석`;
+      }}
+      const headerTitle = document.getElementById('headerTitle');
+      if (headerTitle) {{
+        headerTitle.innerText = `로또 제 ${{newRound + 1}}회 5대 유형`;
+      }}
+      const sectionTag = document.getElementById('sectionTag');
+      if (sectionTag) {{
+        sectionTag.innerText = `제 ${{newRound + 1}}회차 대비`;
+      }}
+
+      // 3. 운세 카드 내 회차 텍스트 갱신
+      const fortuneDrawLabel = document.getElementById('fortuneDrawLabel');
+      if (fortuneDrawLabel) {{
+        fortuneDrawLabel.innerText = `🎯 제 ${{newRound + 1}}회 5대 유형 추천 추첨 일시`;
+      }}
+
+      // 4. 주간 잠금 버튼 텍스트 갱신 (잠금 안 되어 있을 때)
+      if (!isLocked) {{
+        const btnLock = document.getElementById('btnLock');
+        if (btnLock) {{
+          btnLock.innerHTML = `<span>🔒 이번 회차(${{newRound + 1}}회) 황금 일시로 확정 & 주간 잠금</span>`;
+        }}
+      }}
+
+      // 5. 로컬 스토리지에 캐시 저장
+      localStorage.setItem('lotto_latest_synced', JSON.stringify(data));
+
+      if (notifyUser || isNewer) {{
+        showToast(`🎉 최신 제 ${{newRound}}회차 동행복권 결과가 반영되었습니다! (다음 회차: 제 ${{newRound + 1}}회)`);
+      }}
+
+      return isNewer;
+    }}
+
+    async function syncWithServer(isManual = true) {{
+      if (isManual) showToast('동행복권 최종 회차 실시간 동기화 중... 🌐');
+      const data = await fetchLatestLottoData();
+      if (data) {{
+        const isNewer = applyLatestLottoData(data, isManual);
+        if (!isLocked) {{
+          clientSideReGenerate();
+          renderTypes();
+        }}
+        if (isManual && !isNewer) {{
+          showToast(`현재 최종 회차(제 ${{latestSyncedRound}}회)가 이미 완벽하게 반영되어 있습니다. ✓`);
+        }}
+        return true;
+      }} else {{
+        if (isManual) showToast('동행복권 최신 회차를 확인 중입니다. 잠시 후 다시 시도해 주세요.');
+        return false;
       }}
     }}
 
@@ -2221,11 +2349,11 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
           pullIndicator.style.borderColor = '#f59e0b';
         }} else if (pullDistance >= PULL_THRESHOLD) {{
           pullIcon.style.transform = 'rotate(180deg)';
-          pullText.innerText = '손을 놓으면 새로운 번호 추첨! 🎯';
+          pullText.innerText = '손을 놓으면 최신 회차 동기화 & 추첨! 🎯';
           pullIndicator.style.borderColor = '#10b981';
         }} else {{
           pullIcon.style.transform = 'rotate(0deg)';
-          pullText.innerText = '아래로 당겨서 새로운 번호 추첨';
+          pullText.innerText = '아래로 당겨서 최신 회차 불러오기';
           pullIndicator.style.borderColor = 'rgba(56, 189, 248, 0.4)';
         }}
       }}
@@ -2262,13 +2390,17 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
       pullIndicator.classList.add('refreshing');
       pullIcon.innerText = '🔄';
       pullIcon.classList.add('spinner-spin');
-      pullText.innerText = '5대 유형 새로 분석 & 추첨 중...';
+      pullText.innerText = '동행복권 최종 회차 조회 및 동기화 중...';
 
+      // 1. 항상 동행복권 최종 회차를 실시간으로 불러와 동기화
+      await syncWithServer(false);
+
+      // 2. 5대 유형 새로 분석 및 추첨
       await reGenerateAll();
 
       pullIcon.classList.remove('spinner-spin');
       pullIcon.innerText = '✓';
-      pullText.innerText = '추첨 완료! 새로운 번호 도출';
+      pullText.innerText = `제 ${{latestSyncedRound + 1}}회차 최신 기준 추첨 완료!`;
       pullIndicator.style.borderColor = '#10b981';
 
       setTimeout(() => {{
@@ -2573,12 +2705,23 @@ def generate_html_dashboard(analyzer: LottoAnalyzer, initial_types: list) -> str
     }}
 
     // 초기화 실행
+    const cachedLatest = localStorage.getItem('lotto_latest_synced');
+    if (cachedLatest) {{
+      try {{
+        const parsed = JSON.parse(cachedLatest);
+        applyLatestLottoData(parsed, false);
+      }} catch(e) {{}}
+    }}
+
     checkLockStatus();
     checkAlarmStatus();
     renderTypes();
     renderStatsRanks();
+
+    // 맵 초기화 및 백그라운드 실시간 최신 회차 동기화
     setTimeout(() => {{
       initLottoMap();
+      syncWithServer(false);
     }}, 200);
   </script>
 </body>

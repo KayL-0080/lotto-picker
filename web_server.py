@@ -74,11 +74,14 @@ class LottoHandler(BaseHTTPRequestHandler):
             global cached_history, analyzer_instance
             cached_history = sync_lotto_data()
             analyzer_instance = LottoAnalyzer(cached_history)
+            last_item = cached_history[-1] if cached_history else {}
 
             payload = {
                 "success": True,
                 "message": f"최신 {analyzer_instance.latest_round}회차까지 동기화 완료되었습니다.",
                 "latest_round": analyzer_instance.latest_round,
+                "next_round": analyzer_instance.latest_round + 1,
+                "latest_item": last_item,
             }
             body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
             self.send_response(200)
