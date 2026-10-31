@@ -19950,5 +19950,21 @@
     "winner_count": 8,
     "first_prize": 3637439250,
     "total_sell_amount": 118981044000
+  },
+  {
+    "round": 1248,
+    "date": "20261031",
+    "numbers": [
+      16,
+      18,
+      27,
+      36,
+      38,
+      42
+    ],
+    "bonus": 22,
+    "winner_count": 15,
+    "first_prize": 1933658450,
+    "total_sell_amount": 121355508000
   }
 ]
