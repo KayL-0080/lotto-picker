@@ -19966,5 +19966,21 @@
     "winner_count": 15,
     "first_prize": 1933658450,
     "total_sell_amount": 121355508000
+  },
+  {
+    "round": 1249,
+    "date": "20261107",
+    "numbers": [
+      2,
+      11,
+      16,
+      25,
+      34,
+      35
+    ],
+    "bonus": 14,
+    "winner_count": 14,
+    "first_prize": 2025045509,
+    "total_sell_amount": 118161409000
   }
 ]
